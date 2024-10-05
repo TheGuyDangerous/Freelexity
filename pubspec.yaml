@@ -40,6 +40,10 @@ dependencies:
   html: ^0.15.4
   url_launcher: ^6.2.5  # Add this line
 
+  shimmer: ^3.0.0
+
+  speech_to_text: ^6.6.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

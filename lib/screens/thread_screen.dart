@@ -73,15 +73,17 @@ class _ThreadScreenState extends State<ThreadScreen>
                   });
                 },
               ),
-              title: Text('Thread'),
+              title:
+                  Text('Thread', style: TextStyle(fontWeight: FontWeight.bold)),
               backgroundColor: Colors.black,
+              elevation: 0,
             ),
-            body: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
+            body: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                        16, 16, 16, 8), // Reduced bottom padding
                     child: Text(
                       widget.query,
                       style: TextStyle(
@@ -90,11 +92,22 @@ class _ThreadScreenState extends State<ThreadScreen>
                           color: Colors.white),
                     ),
                   ),
-                  _buildSourcesSection(),
-                  if (widget.summary.isNotEmpty) _buildSummaryCard(),
-                  ...widget.searchResults.map(_buildSearchResultCard),
-                ],
-              ),
+                ),
+                SliverToBoxAdapter(
+                  child: _buildSourcesSection(),
+                ),
+                if (widget.summary.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: _buildSummaryCard(),
+                  ),
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) =>
+                        _buildSearchResultCard(widget.searchResults[index]),
+                    childCount: widget.searchResults.length,
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -104,26 +117,66 @@ class _ThreadScreenState extends State<ThreadScreen>
 
   Widget _buildSourcesSection() {
     return Container(
-      height: 40,
+      height: 80, // Increased height
+      margin: EdgeInsets.symmetric(vertical: 16),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: widget.searchResults.length,
         itemBuilder: (context, index) {
           final result = widget.searchResults[index];
           return Container(
-            margin: EdgeInsets.only(right: 8),
-            padding: EdgeInsets.symmetric(horizontal: 12),
+            width: 200, // Fixed width for each item
+            margin: EdgeInsets.only(right: 8, left: index == 0 ? 16 : 0),
+            padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: Colors.grey[800],
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
-                Icon(Icons.public, size: 16, color: Colors.white),
-                SizedBox(width: 4),
-                Text(
-                  result['title'] ?? '',
-                  style: TextStyle(color: Colors.white, fontSize: 12),
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${index + 1}',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        result['title'] ?? '',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        Uri.parse(result['url'] ?? '').host,
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -136,23 +189,30 @@ class _ThreadScreenState extends State<ThreadScreen>
   Widget _buildSummaryCard() {
     return Card(
       color: Colors.grey[900],
+      margin: EdgeInsets.symmetric(
+          horizontal: 16, vertical: 8), // Reduced vertical margin
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+              CrossAxisAlignment.start, // Changed to start alignment
           children: [
-            Text(
-              'Answer',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            Padding(
+              padding:
+                  const EdgeInsets.only(bottom: 12), // Reduced bottom padding
+              child: Text(
+                'Answer',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            SizedBox(height: 8),
             Text(
               widget.summary,
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.white, fontSize: 16),
             ),
           ],
         ),
@@ -163,6 +223,8 @@ class _ThreadScreenState extends State<ThreadScreen>
   Widget _buildSearchResultCard(Map<String, dynamic> result) {
     return Card(
       color: Colors.grey[900],
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ExpansionTile(
         title: Text(
           result['title'] ?? '',
@@ -192,6 +254,11 @@ class _ThreadScreenState extends State<ThreadScreen>
                 ElevatedButton(
                   onPressed: () => _launchURL(result['url']),
                   child: Text('Visit Website'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                  ),
                 ),
               ],
             ),
@@ -202,8 +269,8 @@ class _ThreadScreenState extends State<ThreadScreen>
   }
 
   Future<void> _launchURL(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Could not launch $url')),

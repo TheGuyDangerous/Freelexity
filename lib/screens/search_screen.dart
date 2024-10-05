@@ -3,10 +3,12 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../services/web_scraper_service.dart';
 import '../services/groq_api_service.dart';
 import 'thread_screen.dart';
+import 'thread_loading_screen.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import '../custom_page_route.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -17,9 +19,18 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-  bool _isLoading = false;
   final WebScraperService _webScraperService = WebScraperService();
   final GroqApiService _groqApiService = GroqApiService();
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
+  int _retryCount = 0;
+  static const int _maxRetries = 3;
+
+  @override
+  void initState() {
+    super.initState();
+    _speech = stt.SpeechToText();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,10 +40,7 @@ class _SearchScreenState extends State<SearchScreen> {
         body: Column(
           children: [
             _buildAppBar(),
-            Expanded(
-              child:
-                  _isLoading ? _buildLoadingIndicator() : _buildInitialView(),
-            ),
+            Expanded(child: _buildInitialView()),
             Padding(
               padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
               child: _buildSearchBar(),
@@ -100,36 +108,55 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.mic, color: Colors.white),
-            onPressed: () {
-              // Implement voice search functionality
-            },
+            icon: Icon(_isListening ? Icons.mic : Icons.mic_none,
+                color: Colors.white),
+            onPressed: _listen,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLoadingIndicator() {
-    return Center(
-      child: CircularProgressIndicator(color: Colors.white),
-    );
+  void _listen() async {
+    if (!_isListening) {
+      bool available = await _speech.initialize(
+        onStatus: (status) => print('onStatus: $status'),
+        onError: (errorNotification) => print('onError: $errorNotification'),
+      );
+      if (available) {
+        setState(() => _isListening = true);
+        _speech.listen(
+          onResult: (result) => setState(() {
+            _searchController.text = result.recognizedWords;
+            if (result.finalResult) {
+              _isListening = false;
+              _performSearch();
+            }
+          }),
+        );
+      }
+    } else {
+      setState(() => _isListening = false);
+      _speech.stop();
+    }
   }
 
   Future<void> _performSearch() async {
-    setState(() {
-      _isLoading = true;
-    });
-
     final query = _searchController.text;
+
+    // Open ThreadLoadingScreen immediately
+    Navigator.of(context).push(
+      CustomPageRoute(
+        child: ThreadLoadingScreen(query: query),
+      ),
+    );
+
     final prefs = await SharedPreferences.getInstance();
     final braveApiKey = prefs.getString('braveApiKey') ?? '';
 
     if (braveApiKey.isEmpty) {
       _showErrorDialog('Please enter your Brave Search API key in settings.');
-      setState(() {
-        _isLoading = false;
-      });
+      Navigator.of(context).pop(); // Remove ThreadLoadingScreen
       return;
     }
 
@@ -146,7 +173,6 @@ class _SearchScreenState extends State<SearchScreen> {
         final data = json.decode(response.body);
         final results = List<Map<String, dynamic>>.from(data['web']['results']);
 
-        // Process only the top 5 results
         List<String> scrapedContents = [];
         List<Map<String, dynamic>> processedResults = [];
         for (var i = 0; i < min(5, results.length); i++) {
@@ -162,50 +188,41 @@ class _SearchScreenState extends State<SearchScreen> {
           }
         }
 
-        // Combine all scraped content
         final combinedContent = scrapedContents.join(' ');
-
-        // Generate summary from combined content
         final summary =
             await _groqApiService.summarizeContent(combinedContent, query);
 
-        setState(() {
-          _isLoading = false;
-        });
-
-        // Open ThreadScreen
-        Navigator.of(context).push(
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                ThreadScreen(
+        // Replace ThreadLoadingScreen with actual ThreadScreen
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => ThreadScreen(
               query: query,
               searchResults: processedResults,
               summary: summary,
             ),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-              return SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 1),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: child,
-              );
-            },
           ),
         );
+      } else if (response.statusCode == 429 && _retryCount < _maxRetries) {
+        // Rate limit exceeded, retry after a delay
+        _retryCount++;
+        await Future.delayed(Duration(seconds: pow(2, _retryCount).toInt()));
+        return _performSearch();
       } else {
         _showErrorDialog('Failed to perform search. Please try again.');
-        setState(() {
-          _isLoading = false;
-        });
+        Navigator.of(context).pop(); // Remove ThreadLoadingScreen
       }
     } catch (e) {
-      _showErrorDialog(
-          'An error occurred. Please check your internet connection and try again.');
-      setState(() {
-        _isLoading = false;
-      });
+      if (_retryCount < _maxRetries) {
+        _retryCount++;
+        await Future.delayed(Duration(seconds: pow(2, _retryCount).toInt()));
+        return _performSearch();
+      } else {
+        _showErrorDialog(
+            'An error occurred. Please check your internet connection and try again.');
+        Navigator.of(context).pop(); // Remove ThreadLoadingScreen
+      }
+    } finally {
+      _retryCount = 0;
     }
   }
 
