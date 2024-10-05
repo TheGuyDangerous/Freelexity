@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/web_scraper_service.dart';
 import '../services/groq_api_service.dart';
+import 'thread_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -16,18 +17,111 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<Map<String, dynamic>> _searchResults = [];
   bool _isLoading = false;
-  String _summary = '';
   final WebScraperService _webScraperService = WebScraperService();
   final GroqApiService _groqApiService = GroqApiService();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Column(
+          children: [
+            _buildAppBar(),
+            Expanded(
+              child:
+                  _isLoading ? _buildLoadingIndicator() : _buildInitialView(),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+              child: _buildSearchBar(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppBar() {
+    return Container(
+      height: 100,
+      alignment: Alignment.bottomCenter,
+      padding: EdgeInsets.only(bottom: 16),
+      child: Text(
+        "Freelexity",
+        style: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInitialView() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.search, size: 80, color: Colors.white),
+          SizedBox(height: 16),
+          Text(
+            'Where Knowledge Begins',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.white70,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              style: TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Ask anything...',
+                hintStyle: TextStyle(color: Colors.grey),
+                border: InputBorder.none,
+              ),
+              onSubmitted: (_) => _performSearch(),
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.mic, color: Colors.white),
+            onPressed: () {
+              // Implement voice search functionality
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingIndicator() {
+    return Center(
+      child: CircularProgressIndicator(color: Colors.white),
+    );
+  }
 
   Future<void> _performSearch() async {
     setState(() {
       _isLoading = true;
-      _summary = '';
     });
 
+    final query = _searchController.text;
     final prefs = await SharedPreferences.getInstance();
     final braveApiKey = prefs.getString('braveApiKey') ?? '';
 
@@ -39,7 +133,6 @@ class _SearchScreenState extends State<SearchScreen> {
       return;
     }
 
-    final query = _searchController.text;
     final url =
         Uri.parse('https://api.search.brave.com/res/v1/web/search?q=$query');
 
@@ -55,6 +148,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
         // Process only the top 5 results
         List<String> scrapedContents = [];
+        List<Map<String, dynamic>> processedResults = [];
         for (var i = 0; i < min(5, results.length); i++) {
           var result = results[i];
           try {
@@ -62,9 +156,9 @@ class _SearchScreenState extends State<SearchScreen> {
                 await _webScraperService.scrapeContent(result['url']);
             result['scrapedContent'] = scrapedContent;
             scrapedContents.add(_preprocessContent(scrapedContent));
+            processedResults.add(result);
           } catch (e) {
             print('Error processing content for ${result['url']}: $e');
-            result['scrapedContent'] = 'Unable to process content: $e';
           }
         }
 
@@ -76,10 +170,30 @@ class _SearchScreenState extends State<SearchScreen> {
             await _groqApiService.summarizeContent(combinedContent, query);
 
         setState(() {
-          _searchResults = results;
-          _summary = summary;
           _isLoading = false;
         });
+
+        // Open ThreadScreen
+        Navigator.of(context).push(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                ThreadScreen(
+              query: query,
+              searchResults: processedResults,
+              summary: summary,
+            ),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              );
+            },
+          ),
+        );
       } else {
         _showErrorDialog('Failed to perform search. Please try again.');
         setState(() {
@@ -107,75 +221,15 @@ class _SearchScreenState extends State<SearchScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Error'),
+        title: Text('Error'),
         content: Text(message),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('OK'),
           ),
         ],
       ),
     );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Enter your search query',
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.search),
-                onPressed: _performSearch,
-              ),
-            ),
-            onSubmitted: (_) => _performSearch(),
-          ),
-        ),
-        Expanded(
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : ListView(
-                  children: [
-                    if (_summary.isNotEmpty) ...[
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          'Summary',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(_summary),
-                      ),
-                      const Divider(),
-                    ],
-                    ..._searchResults.map((result) => ListTile(
-                          title: Text(result['title'] ?? ''),
-                          subtitle: Text(result['description'] ?? ''),
-                          onTap: () => _launchURL(result['url']),
-                        )),
-                  ],
-                ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _launchURL(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      print('Could not launch $url');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not launch $url')),
-      );
-    }
   }
 }

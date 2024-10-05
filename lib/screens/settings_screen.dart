@@ -49,23 +49,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             TextField(
               controller: _braveApiController,
+              style: TextStyle(color: Colors.white),
               decoration: const InputDecoration(
                 labelText: 'Brave Search API Key',
                 hintText: 'Enter your Brave Search API key',
+                labelStyle: TextStyle(color: Colors.white70),
+                hintStyle: TextStyle(color: Colors.white30),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _groqApiController,
+              style: TextStyle(color: Colors.white),
               decoration: const InputDecoration(
                 labelText: 'Groq API Key',
                 hintText: 'Enter your Groq API key',
+                labelStyle: TextStyle(color: Colors.white70),
+                hintStyle: TextStyle(color: Colors.white30),
               ),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _saveApiKeys,
               child: const Text('Save API Keys'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         ),
