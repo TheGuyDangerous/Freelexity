@@ -77,7 +77,7 @@ class _SearchScreenState extends State<SearchScreen> {
               size: 80, color: Colors.white), // Updated icon
           SizedBox(height: 16),
           Text(
-            'Where Knowledge Begins',
+            'An Open Source Answer Engine',
             style: TextStyle(
               fontSize: 16,
               color: Colors.white70,

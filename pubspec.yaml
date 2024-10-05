@@ -38,13 +38,14 @@ dependencies:
   http: ^1.2.1
   shared_preferences: ^2.2.2
   html: ^0.15.4
-  url_launcher: ^6.2.5  # Add this line
+  url_launcher: ^6.2.5
 
   shimmer: ^3.0.0
 
   speech_to_text: ^6.6.0
 
-  iconsax: ^0.0.8  # Add this line
+  iconsax: ^0.0.8 
+  intl: ^0.17.0
 
 dev_dependencies:
   flutter_test:
