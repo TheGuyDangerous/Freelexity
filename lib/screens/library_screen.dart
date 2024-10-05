@@ -170,8 +170,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
         onPressed: _clearAllHistory,
         child: Text('Clear All History'),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.red,
+          backgroundColor:
+              Colors.grey[800], // Changed from Colors.red to a greyish color
           foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
     );

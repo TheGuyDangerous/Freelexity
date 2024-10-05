@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'license_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -31,62 +33,124 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('braveApiKey', _braveApiController.text);
     await prefs.setString('groqApiKey', _groqApiController.text);
-    print('Saved Groq API key: ${_groqApiController.text}');
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('API keys saved successfully')),
+      SnackBar(
+        content: Text('API keys saved successfully'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  Widget _buildApiKeyInput(
+      String label, TextEditingController controller, IconData icon) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        leading: Icon(icon, color: Colors.white70),
+        title: TextField(
+          controller: controller,
+          style: TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            labelText: label,
+            labelStyle: TextStyle(color: Colors.white70),
+            border: InputBorder.none,
+          ),
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Settings'),
-        leading: IconButton(
-          icon: Icon(Iconsax.setting_2), // Updated icon
-          onPressed: () {
-            // Add any action if needed
-          },
-        ),
+        title: Text('Settings', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.black,
+        elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
-              controller: _braveApiController,
-              style: TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Brave Search API Key',
-                hintText: 'Enter your Brave Search API key',
-                labelStyle: TextStyle(color: Colors.white70),
-                hintStyle: TextStyle(color: Colors.white30),
+            Text(
+              'API Keys',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _groqApiController,
-              style: TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Groq API Key',
-                hintText: 'Enter your Groq API key',
-                labelStyle: TextStyle(color: Colors.white70),
-                hintStyle: TextStyle(color: Colors.white30),
-              ),
-            ),
-            const SizedBox(height: 24),
+            SizedBox(height: 16),
+            _buildApiKeyInput('Brave Search API Key', _braveApiController,
+                Iconsax.search_normal),
+            _buildApiKeyInput('Groq API Key', _groqApiController, Iconsax.code),
+            SizedBox(height: 24),
             ElevatedButton(
               onPressed: _saveApiKeys,
-              child: const Text('Save API Keys'),
+              child: Text('Save API Keys'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: Colors
+                    .grey[800], // Changed from Colors.blue to a greyish color
                 foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
+            ),
+            SizedBox(height: 32),
+            Text(
+              'About',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16),
+            ListTile(
+              leading: Icon(Iconsax.info_circle, color: Colors.white70),
+              title: Text('Version', style: TextStyle(color: Colors.white)),
+              subtitle: Text('1.0.0', style: TextStyle(color: Colors.white70)),
+            ),
+            ListTile(
+              leading: Icon(Iconsax.document, color: Colors.white70),
+              title: Text('License', style: TextStyle(color: Colors.white)),
+              subtitle: Text('Custom License',
+                  style: TextStyle(color: Colors.white70)),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => LicenseScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Iconsax.code, color: Colors.white70),
+              title: Text('Source Code', style: TextStyle(color: Colors.white)),
+              subtitle: Text('GitHub', style: TextStyle(color: Colors.white70)),
+              onTap: () =>
+                  _launchURL('https://github.com/TheGuyDangerous/Freelexity'),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not launch $url')),
+      );
+    }
   }
 }
