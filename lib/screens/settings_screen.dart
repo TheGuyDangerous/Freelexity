@@ -138,6 +138,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: () =>
                   _launchURL('https://github.com/TheGuyDangerous/Freelexity'),
             ),
+            SizedBox(height: 32),
+            Center(
+              child: Text(
+                'Created with ❣️ by Sannidhya Dubey',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                ),
+              ),
+            ),
           ],
         ),
       ),
