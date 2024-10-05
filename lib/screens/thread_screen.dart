@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
+import 'package:iconsax/iconsax.dart';
 
 class ThreadScreen extends StatefulWidget {
   final String query;
@@ -66,7 +67,7 @@ class _ThreadScreenState extends State<ThreadScreen>
             backgroundColor: Colors.black,
             appBar: AppBar(
               leading: IconButton(
-                icon: Icon(Icons.close),
+                icon: Icon(Iconsax.close_square), // Updated icon
                 onPressed: () {
                   _animationController.reverse().then((_) {
                     Navigator.of(context).pop();
@@ -251,9 +252,10 @@ class _ThreadScreenState extends State<ThreadScreen>
                   style: TextStyle(color: Colors.white70),
                 ),
                 SizedBox(height: 16),
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: () => _launchURL(result['url']),
-                  child: Text('Visit Website'),
+                  icon: Icon(Iconsax.global), // Added icon
+                  label: Text('Visit Website'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     shape: RoundedRectangleBorder(

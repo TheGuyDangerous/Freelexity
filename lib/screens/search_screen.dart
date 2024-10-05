@@ -9,6 +9,7 @@ import 'thread_screen.dart';
 import 'thread_loading_screen.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../custom_page_route.dart';
+import 'package:iconsax/iconsax.dart'; // Add this import
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -72,7 +73,8 @@ class _SearchScreenState extends State<SearchScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search, size: 80, color: Colors.white),
+          Icon(Iconsax.search_normal,
+              size: 80, color: Colors.white), // Updated icon
           SizedBox(height: 16),
           Text(
             'Where Knowledge Begins',
@@ -108,8 +110,8 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
           IconButton(
-            icon: Icon(_isListening ? Icons.mic : Icons.mic_none,
-                color: Colors.white),
+            icon: Icon(_isListening ? Iconsax.microphone_2 : Iconsax.microphone,
+                color: Colors.white), // Updated icons
             onPressed: _listen,
           ),
         ],

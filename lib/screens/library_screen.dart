@@ -3,8 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'thread_loading_screen.dart';
 import '../custom_page_route.dart';
-import 'search_screen.dart';
 import '../services/search_service.dart';
+import 'package:iconsax/iconsax.dart'; // Add this import
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({Key? key}) : super(key: key);
@@ -51,7 +51,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.history, size: 64, color: Colors.grey),
+          Icon(Iconsax.clock, size: 64, color: Colors.grey), // Updated icon
           SizedBox(height: 16),
           Text(
             'Your search history will appear here',
@@ -64,7 +64,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   Widget _buildHistoryList() {
     return ListView.builder(
-      itemCount: _searchHistory.length + 1, // +1 for the clear all button
+      itemCount: _searchHistory.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) {
           return _buildClearAllButton();
@@ -76,38 +76,77 @@ class _LibraryScreenState extends State<LibraryScreen> {
             color: Colors.red,
             alignment: Alignment.centerRight,
             padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.delete, color: Colors.white),
+            child: Icon(Iconsax.trash, color: Colors.white), // Updated icon
           ),
           direction: DismissDirection.endToStart,
           onDismissed: (direction) {
             _deleteHistoryItem(index - 1);
           },
-          child: Card(
-            color: Colors.grey[900],
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              title: Text(
-                item['query'],
-                style:
-                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                CustomPageRoute(
+                  child: ThreadLoadingScreen(query: item['query']),
+                ),
+              );
+              _searchService.performSearch(context, item['query']);
+            },
+            child: Card(
+              color: Colors.grey[900],
+              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Stack(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item['query'],
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          _formatTimestamp(item['timestamp']),
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          item['summary'] != null
+                              ? _truncateSummary(item['summary'])
+                              : 'No summary available',
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(Iconsax.trash,
+                                color: Colors.white70,
+                                size: 20), // Updated icon
+                            onPressed: () {
+                              _deleteHistoryItem(index - 1);
+                            },
+                          ),
+                          Icon(Iconsax.arrow_right_3,
+                              color: Colors.white70, size: 20), // Updated icon
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              subtitle: Text(
-                _formatTimestamp(item['timestamp']),
-                style: TextStyle(color: Colors.white70),
-              ),
-              trailing: Icon(Icons.arrow_forward_ios,
-                  color: Colors.white70, size: 16),
-              onTap: () {
-                Navigator.of(context).push(
-                  CustomPageRoute(
-                    child: ThreadLoadingScreen(query: item['query']),
-                  ),
-                );
-                // Use the SearchService to perform the search
-                _searchService.performSearch(context, item['query']);
-              },
             ),
           ),
         );
@@ -152,5 +191,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
   String _formatTimestamp(String timestamp) {
     final date = DateTime.parse(timestamp);
     return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute}';
+  }
+
+  String _truncateSummary(String summary) {
+    return summary.length > 100 ? summary.substring(0, 100) + '...' : summary;
   }
 }

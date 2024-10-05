@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:iconsax/iconsax.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -41,6 +42,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
+        leading: IconButton(
+          icon: Icon(Iconsax.setting_2), // Updated icon
+          onPressed: () {
+            // Add any action if needed
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

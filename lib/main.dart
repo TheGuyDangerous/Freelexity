@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'screens/search_screen.dart';
 import 'screens/library_screen.dart';
 import 'screens/settings_screen.dart';
+import 'package:iconsax/iconsax.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,15 +56,15 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.search),
+            icon: Icon(Iconsax.search_normal),
             label: 'Search',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.library_books),
+            icon: Icon(Iconsax.book_1),
             label: 'Library',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
+            icon: Icon(Iconsax.setting_2),
             label: 'Settings',
           ),
         ],

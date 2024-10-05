@@ -44,6 +44,8 @@ dependencies:
 
   speech_to_text: ^6.6.0
 
+  iconsax: ^0.0.8  # Add this line
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
