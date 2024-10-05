@@ -20,7 +20,7 @@ class SearchService {
     if (braveApiKey.isEmpty) {
       _showErrorDialog(
           context, 'Please enter your Brave Search API key in settings.');
-      Navigator.of(context).pop(); // Remove ThreadLoadingScreen
+      Navigator.of(context).pop();
       return;
     }
 
@@ -37,26 +37,28 @@ class SearchService {
         final data = json.decode(response.body);
         final results = List<Map<String, dynamic>>.from(data['web']['results']);
 
-        List<String> scrapedContents = [];
-        List<Map<String, dynamic>> processedResults = [];
-        for (var i = 0; i < min(5, results.length); i++) {
-          var result = results[i];
-          try {
-            final scrapedContent =
-                await _webScraperService.scrapeContent(result['url']);
-            result['scrapedContent'] = scrapedContent;
-            scrapedContents.add(_preprocessContent(scrapedContent));
-            processedResults.add(result);
-          } catch (e) {
-            print('Error processing content for ${result['url']}: $e');
-          }
-        }
+        // Limit to top 5 results and process them in parallel
+        final processedResults = await Future.wait(
+          results.take(5).map((result) async {
+            try {
+              final scrapedContent =
+                  await _webScraperService.scrapeContent(result['url']);
+              result['scrapedContent'] = _preprocessContent(scrapedContent);
+              return result;
+            } catch (e) {
+              print('Error processing content for ${result['url']}: $e');
+              return result;
+            }
+          }),
+        );
 
-        final combinedContent = scrapedContents.join(' ');
+        final combinedContent = processedResults
+            .map((result) => result['scrapedContent'] ?? '')
+            .join(' ');
+
         final summary =
             await _groqApiService.summarizeContent(combinedContent, query);
 
-        // Replace ThreadLoadingScreen with actual ThreadScreen
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => ThreadScreen(
@@ -67,14 +69,13 @@ class SearchService {
           ),
         );
       } else if (response.statusCode == 429 && _retryCount < _maxRetries) {
-        // Rate limit exceeded, retry after a delay
         _retryCount++;
         await Future.delayed(Duration(seconds: pow(2, _retryCount).toInt()));
         return performSearch(context, query);
       } else {
         _showErrorDialog(
             context, 'Failed to perform search. Please try again.');
-        Navigator.of(context).pop(); // Remove ThreadLoadingScreen
+        Navigator.of(context).pop();
       }
     } catch (e) {
       if (_retryCount < _maxRetries) {
@@ -84,7 +85,7 @@ class SearchService {
       } else {
         _showErrorDialog(context,
             'An error occurred. Please check your internet connection and try again.');
-        Navigator.of(context).pop(); // Remove ThreadLoadingScreen
+        Navigator.of(context).pop();
       }
     } finally {
       _retryCount = 0;
@@ -95,7 +96,7 @@ class SearchService {
     return content
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim()
-        .substring(0, min(1000, content.length));
+        .substring(0, min(500, content.length)); // Reduced to 500 characters
   }
 
   void _showErrorDialog(BuildContext context, String message) {
