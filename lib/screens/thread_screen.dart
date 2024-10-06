@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:iconsax/iconsax.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:http/http.dart' as http;
+import 'package:flutter_tts/flutter_tts.dart';
 import '../services/search_service.dart';
 import 'thread_loading_screen.dart';
 
@@ -34,6 +35,8 @@ class _ThreadScreenState extends State<ThreadScreen>
   List<String> _relatedQuestions = [];
   List<String> _images = [];
   bool _isIncognitoMode = false;
+  late FlutterTts _flutterTts;
+  bool _isSpeaking = false;
 
   @override
   void initState() {
@@ -46,12 +49,21 @@ class _ThreadScreenState extends State<ThreadScreen>
     _animationController.forward();
     _loadIncognitoMode();
     _speech = stt.SpeechToText();
+    _flutterTts = FlutterTts();
+    _initializeTts();
+  }
+
+  Future<void> _initializeTts() async {
+    await _flutterTts.setLanguage("en-US");
+    await _flutterTts.setPitch(1.0);
+    await _flutterTts.setSpeechRate(0.5);
   }
 
   @override
   void dispose() {
     _animationController.dispose();
     _followUpController.dispose();
+    _flutterTts.stop();
     super.dispose();
   }
 
@@ -227,7 +239,7 @@ class _ThreadScreenState extends State<ThreadScreen>
 
   Widget _buildImageSection() {
     if (_images.isEmpty) {
-      return SizedBox.shrink(); // Don't show anything if there are no images
+      return SizedBox.shrink();
     }
 
     return Container(
@@ -236,21 +248,21 @@ class _ThreadScreenState extends State<ThreadScreen>
         children: [
           Expanded(
             flex: 1,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: 1,
-              itemBuilder: (context, index) {
-                return Container(
-                  margin: EdgeInsets.only(left: 16, right: 8),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      _images[0],
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                );
-              },
+            child: Container(
+              margin: EdgeInsets.only(left: 16, right: 8),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: _images.isNotEmpty
+                    ? _buildImage(_images[0])
+                    : Container(
+                        width: double.infinity,
+                        color: Colors.grey[800],
+                        child: Center(
+                          child: Icon(Iconsax.image,
+                              color: Colors.white70, size: 40),
+                        ),
+                      ),
+              ),
             ),
           ),
           Expanded(
@@ -261,19 +273,58 @@ class _ThreadScreenState extends State<ThreadScreen>
               mainAxisSpacing: 8,
               crossAxisSpacing: 8,
               padding: EdgeInsets.only(left: 8, right: 16),
-              children: _images.sublist(1).map((url) {
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    url,
-                    fit: BoxFit.cover,
-                  ),
-                );
-              }).toList(),
+              children: _images.length > 1
+                  ? _images.sublist(1).map((url) {
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: _buildImage(url),
+                      );
+                    }).toList()
+                  : List.generate(4, (index) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[800],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Icon(Iconsax.image, color: Colors.white70),
+                        ),
+                      );
+                    }),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildImage(String url) {
+    return Image.network(
+      url,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        print('Error loading image: $error');
+        return Container(
+          color: Colors.grey[800],
+          child: Center(
+            child: Icon(Iconsax.image, color: Colors.white70, size: 40),
+          ),
+        );
+      },
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Container(
+          color: Colors.grey[800],
+          child: Center(
+            child: CircularProgressIndicator(
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!
+                  : null,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -284,12 +335,52 @@ class _ThreadScreenState extends State<ThreadScreen>
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Text(
-          widget.summary,
-          style: TextStyle(color: Colors.white, fontSize: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Answer',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    _isSpeaking ? Iconsax.volume_slash : Iconsax.volume_high,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  onPressed: () => _toggleSpeech(widget.summary),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Text(
+              widget.summary,
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  Future<void> _toggleSpeech(String text) async {
+    if (_isSpeaking) {
+      await _flutterTts.stop();
+      setState(() => _isSpeaking = false);
+    } else {
+      setState(() => _isSpeaking = true);
+      await _flutterTts.speak(text);
+      _flutterTts.setCompletionHandler(() {
+        setState(() => _isSpeaking = false);
+      });
+    }
   }
 
   Widget _buildFollowUpInput() {
@@ -537,13 +628,21 @@ class _ThreadScreenState extends State<ThreadScreen>
         setState(() {
           _images = results
               .map((result) => result['thumbnail']['src'] as String)
+              .where((url) => url != null && url.isNotEmpty)
               .toList();
         });
       } else {
         print('Failed to fetch images: ${response.statusCode}');
+        // Optionally, you can set _images to an empty list or a list of placeholder image URLs
+        setState(() {
+          _images = [];
+        });
       }
     } catch (e) {
       print('Error fetching images: $e');
+      setState(() {
+        _images = [];
+      });
     }
   }
 

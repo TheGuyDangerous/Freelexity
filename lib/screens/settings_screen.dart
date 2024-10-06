@@ -15,6 +15,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final TextEditingController _braveApiController = TextEditingController();
   final TextEditingController _groqApiController = TextEditingController();
   bool _isIncognitoMode = false;
+  bool _useWhisperModel = false;
 
   @override
   void initState() {
@@ -28,6 +29,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _braveApiController.text = prefs.getString('braveApiKey') ?? '';
       _groqApiController.text = prefs.getString('groqApiKey') ?? '';
       _isIncognitoMode = prefs.getBool('incognitoMode') ?? false;
+      _useWhisperModel = prefs.getBool('useWhisperModel') ?? false;
     });
   }
 
@@ -36,6 +38,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.setString('braveApiKey', _braveApiController.text);
     await prefs.setString('groqApiKey', _groqApiController.text);
     await prefs.setBool('incognitoMode', _isIncognitoMode);
+    await prefs.setBool(
+        'useWhisperModel', _useWhisperModel); // Make sure this line is present
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Settings saved successfully')),
     );
@@ -61,6 +65,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showWhisperInfoDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('OpenAI Whisper Model'),
+          content: Text(
+              'The OpenAI Whisper model is a more advanced speech recognition system that can provide better accuracy, especially for non-English languages and accented speech. However, it requires an internet connection and may be slower than the device\'s built-in speech recognition.\n\n'
+              'When enabled, the app will use the Whisper model through the Groq API for speech-to-text conversion instead of the device\'s built-in system.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -118,12 +144,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
               activeColor: Colors.blue,
             ),
             SizedBox(height: 24),
+            Text(
+              'Speech Recognition',
+              style: TextStyle(
+                fontFamily: 'Raleway',
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Use OpenAI Whisper Model',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Iconsax.info_circle, color: Colors.white70),
+                        onPressed: _showWhisperInfoDialog,
+                      ),
+                      Switch(
+                        value: _useWhisperModel,
+                        onChanged: (value) {
+                          setState(() {
+                            _useWhisperModel = value;
+                          });
+                        },
+                        activeColor: Colors.blue,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 24),
             ElevatedButton(
               onPressed: _saveSettings,
               child: Text('Save Settings'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors
-                    .grey[800], // Changed from Colors.blue to a greyish color
+                backgroundColor: Colors.grey[800],
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 shape: RoundedRectangleBorder(
