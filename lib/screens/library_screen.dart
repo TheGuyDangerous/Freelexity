@@ -17,6 +17,7 @@ class LibraryScreen extends StatefulWidget {
 class _LibraryScreenState extends State<LibraryScreen> {
   List<Map<String, dynamic>> _searchHistory = [];
   final SearchService _searchService = SearchService();
+  bool _isIncognitoMode = false;
 
   @override
   void initState() {
@@ -26,12 +27,19 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   Future<void> _loadSearchHistory() async {
     final prefs = await SharedPreferences.getInstance();
-    final history = prefs.getStringList('search_history') ?? [];
-    setState(() {
-      _searchHistory = history
-          .map((item) => json.decode(item) as Map<String, dynamic>)
-          .toList();
-    });
+    _isIncognitoMode = prefs.getBool('incognitoMode') ?? false;
+    if (!_isIncognitoMode) {
+      final history = prefs.getStringList('search_history') ?? [];
+      setState(() {
+        _searchHistory = history
+            .map((item) => json.decode(item) as Map<String, dynamic>)
+            .toList();
+      });
+    } else {
+      setState(() {
+        _searchHistory = [];
+      });
+    }
   }
 
   @override
@@ -43,7 +51,31 @@ class _LibraryScreenState extends State<LibraryScreen> {
         backgroundColor: Colors.black,
         elevation: 0,
       ),
-      body: _searchHistory.isEmpty ? _buildEmptyState() : _buildHistoryList(),
+      body: _isIncognitoMode
+          ? _buildIncognitoMessage()
+          : (_searchHistory.isEmpty ? _buildEmptyState() : _buildHistoryList()),
+    );
+  }
+
+  Widget _buildIncognitoMessage() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Iconsax.shield_tick, size: 64, color: Colors.grey),
+          SizedBox(height: 16),
+          Text(
+            'Incognito Mode Active',
+            style: TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Your search history is not being saved',
+            style: TextStyle(color: Colors.white70, fontSize: 14),
+          ),
+        ],
+      ),
     );
   }
 

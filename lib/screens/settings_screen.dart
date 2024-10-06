@@ -14,30 +14,30 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final TextEditingController _braveApiController = TextEditingController();
   final TextEditingController _groqApiController = TextEditingController();
+  bool _isIncognitoMode = false;
 
   @override
   void initState() {
     super.initState();
-    _loadApiKeys();
+    _loadSettings();
   }
 
-  Future<void> _loadApiKeys() async {
+  Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _braveApiController.text = prefs.getString('braveApiKey') ?? '';
       _groqApiController.text = prefs.getString('groqApiKey') ?? '';
+      _isIncognitoMode = prefs.getBool('incognitoMode') ?? false;
     });
   }
 
-  Future<void> _saveApiKeys() async {
+  Future<void> _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('braveApiKey', _braveApiController.text);
     await prefs.setString('groqApiKey', _groqApiController.text);
+    await prefs.setBool('incognitoMode', _isIncognitoMode);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('API keys saved successfully'),
-        backgroundColor: Colors.green,
-      ),
+      SnackBar(content: Text('Settings saved successfully')),
     );
   }
 
@@ -91,9 +91,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Iconsax.search_normal),
             _buildApiKeyInput('Groq API Key', _groqApiController, Iconsax.code),
             SizedBox(height: 24),
+            Text(
+              'Privacy',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16),
+            SwitchListTile(
+              title:
+                  Text('Incognito Mode', style: TextStyle(color: Colors.white)),
+              subtitle: Text('Disable search history',
+                  style: TextStyle(color: Colors.white70)),
+              value: _isIncognitoMode,
+              onChanged: (value) {
+                setState(() {
+                  _isIncognitoMode = value;
+                });
+              },
+              activeColor: Colors.blue,
+            ),
+            SizedBox(height: 24),
             ElevatedButton(
-              onPressed: _saveApiKeys,
-              child: Text('Save API Keys'),
+              onPressed: _saveSettings,
+              child: Text('Save Settings'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors
                     .grey[800], // Changed from Colors.blue to a greyish color

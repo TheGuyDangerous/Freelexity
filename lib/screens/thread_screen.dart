@@ -33,6 +33,7 @@ class _ThreadScreenState extends State<ThreadScreen>
   bool _isListening = false;
   List<String> _relatedQuestions = [];
   List<String> _images = [];
+  bool _isIncognitoMode = false;
 
   @override
   void initState() {
@@ -43,10 +44,8 @@ class _ThreadScreenState extends State<ThreadScreen>
     );
     _animation = Tween<double>(begin: 0, end: 1).animate(_animationController);
     _animationController.forward();
-    _saveToHistory();
+    _loadIncognitoMode();
     _speech = stt.SpeechToText();
-    _fetchRelatedQuestions();
-    _fetchImages();
   }
 
   @override
@@ -54,6 +53,16 @@ class _ThreadScreenState extends State<ThreadScreen>
     _animationController.dispose();
     _followUpController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadIncognitoMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isIncognitoMode = prefs.getBool('incognitoMode') ?? false;
+    });
+    if (!_isIncognitoMode) {
+      _saveToHistory();
+    }
   }
 
   Future<void> _saveToHistory() async {
@@ -534,5 +543,18 @@ class _ThreadScreenState extends State<ThreadScreen>
     } catch (e) {
       print('Error fetching images: $e');
     }
+  }
+
+  // Create a method to load all data
+  Future<void> _loadData() async {
+    await _fetchRelatedQuestions();
+    await _fetchImages();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Load data here instead of in initState
+    _loadData();
   }
 }

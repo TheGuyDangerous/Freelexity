@@ -14,6 +14,10 @@ class SearchService {
   static const int _maxRetries = 3;
 
   Future<void> performSearch(BuildContext context, String query) async {
+    if (query.trim().isEmpty) {
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
     final braveApiKey = prefs.getString('braveApiKey') ?? '';
 

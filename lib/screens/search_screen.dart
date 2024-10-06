@@ -9,7 +9,9 @@ import 'thread_screen.dart';
 import 'thread_loading_screen.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../custom_page_route.dart';
-import 'package:iconsax/iconsax.dart'; // Add this import
+import 'package:iconsax/iconsax.dart';
+import 'package:lottie/lottie.dart'; // Add this import
+import '../services/search_service.dart'; // Add this import
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -22,6 +24,7 @@ class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final WebScraperService _webScraperService = WebScraperService();
   final GroqApiService _groqApiService = GroqApiService();
+  final SearchService _searchService = SearchService(); // Add this line
   late stt.SpeechToText _speech;
   bool _isListening = false;
   int _retryCount = 0;
@@ -73,13 +76,21 @@ class _SearchScreenState extends State<SearchScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Iconsax.search_normal,
-              size: 80, color: Colors.white), // Updated icon
-          SizedBox(height: 16),
+          Container(
+            width: 250, // Increased from 200
+            height: 250, // Increased from 200
+            child: Lottie.asset(
+              'assets/loading_animation.json',
+              fit: BoxFit.contain,
+              repeat: true,
+              animate: true,
+            ),
+          ),
+          SizedBox(height: 24), // Increased from 16
           Text(
             'An Open Source Answer Engine',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 18, // Increased from 16
               color: Colors.white70,
             ),
           ),
@@ -144,88 +155,20 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> _performSearch() async {
-    final query = _searchController.text;
+    if (_searchController.text.trim().isEmpty) {
+      // Don't perform search if the query is empty
+      return;
+    }
 
     // Open ThreadLoadingScreen immediately
     Navigator.of(context).push(
       CustomPageRoute(
-        child: ThreadLoadingScreen(query: query),
+        child: ThreadLoadingScreen(query: _searchController.text),
       ),
     );
 
-    final prefs = await SharedPreferences.getInstance();
-    final braveApiKey = prefs.getString('braveApiKey') ?? '';
-
-    if (braveApiKey.isEmpty) {
-      _showErrorDialog('Please enter your Brave Search API key in settings.');
-      Navigator.of(context).pop(); // Remove ThreadLoadingScreen
-      return;
-    }
-
-    final url =
-        Uri.parse('https://api.search.brave.com/res/v1/web/search?q=$query');
-
-    try {
-      final response = await http.get(
-        url,
-        headers: {'X-Subscription-Token': braveApiKey},
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final results = List<Map<String, dynamic>>.from(data['web']['results']);
-
-        List<String> scrapedContents = [];
-        List<Map<String, dynamic>> processedResults = [];
-        for (var i = 0; i < min(5, results.length); i++) {
-          var result = results[i];
-          try {
-            final scrapedContent =
-                await _webScraperService.scrapeContent(result['url']);
-            result['scrapedContent'] = scrapedContent;
-            scrapedContents.add(_preprocessContent(scrapedContent));
-            processedResults.add(result);
-          } catch (e) {
-            print('Error processing content for ${result['url']}: $e');
-          }
-        }
-
-        final combinedContent = scrapedContents.join(' ');
-        final summary =
-            await _groqApiService.summarizeContent(combinedContent, query);
-
-        // Replace ThreadLoadingScreen with actual ThreadScreen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => ThreadScreen(
-              query: query,
-              searchResults: processedResults,
-              summary: summary,
-            ),
-          ),
-        );
-      } else if (response.statusCode == 429 && _retryCount < _maxRetries) {
-        // Rate limit exceeded, retry after a delay
-        _retryCount++;
-        await Future.delayed(Duration(seconds: pow(2, _retryCount).toInt()));
-        return _performSearch();
-      } else {
-        _showErrorDialog('Failed to perform search. Please try again.');
-        Navigator.of(context).pop(); // Remove ThreadLoadingScreen
-      }
-    } catch (e) {
-      if (_retryCount < _maxRetries) {
-        _retryCount++;
-        await Future.delayed(Duration(seconds: pow(2, _retryCount).toInt()));
-        return _performSearch();
-      } else {
-        _showErrorDialog(
-            'An error occurred. Please check your internet connection and try again.');
-        Navigator.of(context).pop(); // Remove ThreadLoadingScreen
-      }
-    } finally {
-      _retryCount = 0;
-    }
+    // Perform the search using SearchService
+    await _searchService.performSearch(context, _searchController.text);
   }
 
   String _preprocessContent(String content) {
