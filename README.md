@@ -37,22 +37,26 @@ Before you begin, ensure you have met the following requirements:
 ## Installation
 
 1. Clone the repository:
-   ```
+
+   ```bash
    git clone https://github.com/TheGuyDangerous/Freelexity.git
    ```
 
 2. Navigate to the project directory:
-   ```
-   cd Freelexity
-   ```
+
+    ```bash
+    cd Freelexity
+    ```
 
 3. Install dependencies:
-   ```
+  
+   ```bash
    flutter pub get
    ```
 
 4. Run the app:
-   ```
+
+   ```bash
    flutter run
    ```
 
@@ -91,7 +95,7 @@ Freelexity combines web search, content scraping, and AI-powered summarization t
 
 ## File Structure
 
-```
+```bash
 lib/
 ├── main.dart
 ├── custom_page_route.dart
@@ -128,7 +132,7 @@ Contributions to Freelexity are welcome! Please read our [Contributing Guideline
 ## Contact
 
 For commercial licensing options or any queries, please contact:
-sannidhyadubey@gmail.com
+<sannidhyadubey@gmail.com>
 
 ---
 

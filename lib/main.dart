@@ -18,11 +18,11 @@ class MyApp extends StatelessWidget {
       title: 'Freelexity',
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: Colors.black,
-        appBarTheme: AppBarTheme(
+        appBarTheme: const AppBarTheme(
           backgroundColor: Colors.black,
           foregroundColor: Colors.white,
         ),
-        textTheme: TextTheme(
+        textTheme: const TextTheme(
           bodyLarge: TextStyle(fontFamily: 'Raleway'),
           bodyMedium: TextStyle(fontFamily: 'Raleway'),
           titleLarge:
@@ -42,18 +42,18 @@ class MyApp extends StatelessWidget {
 }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  HomeScreenState createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   final List<Widget> _screens = [
-    SearchScreen(),
-    LibraryScreen(),
-    SettingsScreen(),
+    const SearchScreen(),
+    const LibraryScreen(),
+    const SettingsScreen(),
   ];
 
   @override
@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _currentIndex = index;
           });
         },
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Iconsax.search_normal),
             label: 'Search',
