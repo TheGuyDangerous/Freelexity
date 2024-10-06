@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:math';
@@ -17,6 +18,7 @@ import '../services/whisper_service.dart'; // Add this import
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart'; // Add this import
+import 'package:fluttertoast/fluttertoast.dart'; // Add this import
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -98,16 +100,46 @@ class _SearchScreenState extends State<SearchScreen> {
       height: 100,
       alignment: Alignment.bottomCenter,
       padding: EdgeInsets.only(bottom: 16),
-      child: Text(
-        "Freelexity",
-        style: TextStyle(
-          fontFamily: 'Raleway',
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          SizedBox(width: 48), // To balance the layout
+          Text(
+            "Freelexity",
+            style: TextStyle(
+              fontFamily: 'Raleway',
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(right: 16), // Added right padding
+            child: IconButton(
+              icon: Icon(Iconsax.export, color: Colors.white),
+              onPressed: _shareApp,
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  void _shareApp() {
+    Clipboard.setData(ClipboardData(
+      text:
+          "Try Freelexity:\nhttps://www.github.com/TheGuyDangerous/Freelexity",
+    )).then((_) {
+      Fluttertoast.showToast(
+        msg: "Share link copied to clipboard",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey[800],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    });
   }
 
   Widget _buildInitialView() {

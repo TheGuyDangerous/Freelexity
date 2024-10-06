@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'license_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -38,11 +39,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.setString('braveApiKey', _braveApiController.text);
     await prefs.setString('groqApiKey', _groqApiController.text);
     await prefs.setBool('incognitoMode', _isIncognitoMode);
-    await prefs.setBool(
-        'useWhisperModel', _useWhisperModel); // Make sure this line is present
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Settings saved successfully')),
-    );
+    await prefs.setBool('useWhisperModel', _useWhisperModel);
+    Fluttertoast.showToast(
+        msg: "Settings saved successfully",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey[800],
+        textColor: Colors.white,
+        fontSize: 16.0);
   }
 
   Widget _buildApiKeyInput(
@@ -252,9 +257,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (await canLaunch(url)) {
       await launch(url);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not launch $url')),
-      );
+      Fluttertoast.showToast(
+          msg: "Could not launch $url",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.grey[800],
+          textColor: Colors.white,
+          fontSize: 16.0);
     }
   }
 }

@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/web_scraper_service.dart';
 import '../services/groq_api_service.dart';
 import '../screens/thread_screen.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class SearchService {
   final WebScraperService _webScraperService = WebScraperService();
@@ -22,8 +23,7 @@ class SearchService {
     final braveApiKey = prefs.getString('braveApiKey') ?? '';
 
     if (braveApiKey.isEmpty) {
-      _showErrorDialog(
-          context, 'Please enter your Brave Search API key in settings.');
+      _showErrorToast('Please enter your Brave Search API key in settings.');
       Navigator.of(context).pop();
       return;
     }
@@ -87,7 +87,7 @@ class SearchService {
         await Future.delayed(Duration(seconds: pow(2, _retryCount).toInt()));
         return performSearch(context, query);
       } else {
-        _showErrorDialog(context,
+        _showErrorToast(
             'An error occurred. Please check your internet connection and try again.');
         Navigator.of(context).pop();
       }
@@ -101,6 +101,17 @@ class SearchService {
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim()
         .substring(0, min(500, content.length)); // Reduced to 500 characters
+  }
+
+  void _showErrorToast(String message) {
+    Fluttertoast.showToast(
+        msg: message,
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 3,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0);
   }
 
   void _showErrorDialog(BuildContext context, String message) {

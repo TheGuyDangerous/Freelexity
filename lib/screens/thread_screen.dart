@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
@@ -6,6 +7,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:http/http.dart' as http;
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../services/search_service.dart';
 import 'thread_loading_screen.dart';
 
@@ -349,13 +351,27 @@ class _ThreadScreenState extends State<ThreadScreen>
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                IconButton(
-                  icon: Icon(
-                    _isSpeaking ? Iconsax.volume_slash : Iconsax.volume_high,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                  onPressed: () => _toggleSpeech(widget.summary),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Iconsax.copy,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      onPressed: () => _copySummaryToClipboard(),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        _isSpeaking
+                            ? Iconsax.volume_slash
+                            : Iconsax.volume_high,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      onPressed: () => _toggleSpeech(widget.summary),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -368,6 +384,18 @@ class _ThreadScreenState extends State<ThreadScreen>
         ),
       ),
     );
+  }
+
+  void _copySummaryToClipboard() {
+    Clipboard.setData(ClipboardData(text: widget.summary));
+    Fluttertoast.showToast(
+        msg: "Summary copied to clipboard",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey[800],
+        textColor: Colors.white,
+        fontSize: 16.0);
   }
 
   Future<void> _toggleSpeech(String text) async {
@@ -444,7 +472,8 @@ class _ThreadScreenState extends State<ThreadScreen>
                 onPressed: () => _launchURL(result['url']),
                 child: Text('Visit Website'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Colors.grey[800], // Changed to greyish color
+                  foregroundColor: Colors.white, // Text color
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8)),
                 ),
