@@ -69,7 +69,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text('Settings', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('Settings',
+            style:
+                TextStyle(fontFamily: 'Raleway', fontWeight: FontWeight.bold)),
         backgroundColor: Colors.black,
         elevation: 0,
       ),
@@ -81,6 +83,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Text(
               'API Keys',
               style: TextStyle(
+                fontFamily: 'Raleway',
                 color: Colors.white,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -94,6 +97,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Text(
               'Privacy',
               style: TextStyle(
+                fontFamily: 'Raleway',
                 color: Colors.white,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -131,6 +135,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Text(
               'About',
               style: TextStyle(
+                fontFamily: 'Raleway',
                 color: Colors.white,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -166,6 +171,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Text(
                 'Created with ❣️ by Sannidhya Dubey',
                 style: TextStyle(
+                  fontFamily: 'Raleway',
                   color: Colors.white70,
                   fontSize: 14,
                 ),

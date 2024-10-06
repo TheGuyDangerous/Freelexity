@@ -47,7 +47,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text('Library', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('Library',
+            style:
+                TextStyle(fontFamily: 'Raleway', fontWeight: FontWeight.bold)),
         backgroundColor: Colors.black,
         elevation: 0,
       ),

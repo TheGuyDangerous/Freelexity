@@ -63,7 +63,8 @@ class _SearchScreenState extends State<SearchScreen> {
       child: Text(
         "Freelexity",
         style: TextStyle(
-          fontSize: 24,
+          fontFamily: 'Raleway',
+          fontSize: 28,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
@@ -90,6 +91,7 @@ class _SearchScreenState extends State<SearchScreen> {
           Text(
             'An Open Source Answer Engine',
             style: TextStyle(
+              fontFamily: 'Raleway',
               fontSize: 18, // Increased from 16
               color: Colors.white70,
             ),

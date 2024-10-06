@@ -96,8 +96,9 @@ class _ThreadScreenState extends State<ThreadScreen>
                   });
                 },
               ),
-              title:
-                  Text('Thread', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: Text('Thread',
+                  style: TextStyle(
+                      fontFamily: 'Raleway', fontWeight: FontWeight.bold)),
               backgroundColor: Colors.black,
               elevation: 0,
             ),
@@ -112,6 +113,7 @@ class _ThreadScreenState extends State<ThreadScreen>
                           child: Text(
                             widget.query,
                             style: TextStyle(
+                                fontFamily: 'Raleway',
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white),

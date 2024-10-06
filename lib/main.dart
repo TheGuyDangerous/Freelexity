@@ -22,6 +22,19 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.black,
           foregroundColor: Colors.white,
         ),
+        textTheme: TextTheme(
+          bodyLarge: TextStyle(fontFamily: 'Raleway'),
+          bodyMedium: TextStyle(fontFamily: 'Raleway'),
+          titleLarge:
+              TextStyle(fontFamily: 'Raleway', fontWeight: FontWeight.bold),
+          titleMedium:
+              TextStyle(fontFamily: 'Raleway', fontWeight: FontWeight.bold),
+          titleSmall:
+              TextStyle(fontFamily: 'Raleway', fontWeight: FontWeight.bold),
+        ).apply(
+          bodyColor: Colors.white,
+          displayColor: Colors.white,
+        ),
       ),
       home: const HomeScreen(),
     );
