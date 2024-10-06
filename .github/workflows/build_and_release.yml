@@ -2,9 +2,9 @@ name: Flutter Build and Release
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, dev ]
 
 jobs:
   build_and_release:
@@ -57,7 +57,7 @@ jobs:
         tag_name: v0.${{ github.run_number }}
         release_name: Release 0.${{ github.run_number }}
         draft: false
-        prerelease: false
+        prerelease: ${{ github.ref == 'refs/heads/dev' }}
 
     - name: Upload armeabi-v7a APK
       uses: actions/upload-release-asset@v1
