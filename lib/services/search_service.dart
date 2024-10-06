@@ -5,7 +5,7 @@ import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/web_scraper_service.dart';
 import '../services/groq_api_service.dart';
-import '../screens/thread_screen.dart';
+import '../screens/thread/thread_screen.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class SearchService {
@@ -77,30 +77,18 @@ class SearchService {
         await Future.delayed(Duration(seconds: pow(2, _retryCount).toInt()));
         return performSearch(context, query);
       } else {
-        _showErrorDialog(
-            context, 'Failed to perform search. Please try again.');
-        Navigator.of(context).pop();
+        _handleApiError(context, 'Failed to perform search. Please try again.');
       }
     } catch (e) {
-      if (_retryCount < _maxRetries) {
-        _retryCount++;
-        await Future.delayed(Duration(seconds: pow(2, _retryCount).toInt()));
-        return performSearch(context, query);
-      } else {
-        _showErrorToast(
-            'An error occurred. Please check your internet connection and try again.');
-        Navigator.of(context).pop();
-      }
-    } finally {
-      _retryCount = 0;
+      _handleApiError(context,
+          'An error occurred. Please check your internet connection and try again.');
     }
   }
 
   String _preprocessContent(String content) {
-    return content
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim()
-        .substring(0, min(500, content.length)); // Reduced to 500 characters
+    final trimmedContent = content.replaceAll(RegExp(r'\s+'), ' ').trim();
+    final maxLength = trimmedContent.length < 500 ? trimmedContent.length : 500;
+    return trimmedContent.substring(0, maxLength);
   }
 
   void _showErrorToast(String message) {
@@ -128,5 +116,31 @@ class SearchService {
         ],
       ),
     );
+  }
+
+  void _handleApiError(BuildContext context, String message) {
+    Navigator.of(context).pop(); // Remove loading screen
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+    );
+  }
+
+  Future<bool> validateBraveApiKey(String apiKey) async {
+    final url =
+        Uri.parse('https://api.search.brave.com/res/v1/web/search?q=test');
+    try {
+      final response = await http.get(
+        url,
+        headers: {'X-Subscription-Token': apiKey},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error validating Brave API key: $e');
+      return false;
+    }
   }
 }
