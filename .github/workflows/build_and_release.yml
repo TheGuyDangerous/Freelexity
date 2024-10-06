@@ -10,13 +10,13 @@ jobs:
   build_and_release:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     
     - name: Setup Java
-      uses: actions/setup-java@v2
+      uses: actions/setup-java@v3
       with:
         distribution: 'zulu'
-        java-version: '17'  # Changed from '11' to '17'
+        java-version: '17'
     
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
@@ -24,11 +24,35 @@ jobs:
         flutter-version: '3.24.3'
         channel: 'stable'
     
+    - name: Cache Gradle packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+    
+    - name: Cache Pub dependencies
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.FLUTTER_HOME }}/.pub-cache
+        key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pub-
+    
     - name: Get dependencies
       run: flutter pub get
     
+    - name: Analyze project source
+      run: flutter analyze
+    
+    - name: Run tests
+      run: flutter test
+    
     - name: Build APK
-      run: flutter build apk --release
+      run: flutter build apk --release --split-per-abi
 
     - name: Create Release
       id: create_release
@@ -41,12 +65,32 @@ jobs:
         draft: false
         prerelease: false
 
-    - name: Upload Release Asset
+    - name: Upload armeabi-v7a APK
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./build/app/outputs/flutter-apk/app-release.apk
-        asset_name: freelexity-v0.${{ github.run_number }}.apk
+        asset_path: ./build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+        asset_name: freelexity-v0.${{ github.run_number }}-armeabi-v7a.apk
+        asset_content_type: application/vnd.android.package-archive
+
+    - name: Upload arm64-v8a APK
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+        asset_name: freelexity-v0.${{ github.run_number }}-arm64-v8a.apk
+        asset_content_type: application/vnd.android.package-archive
+
+    - name: Upload x86_64 APK
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./build/app/outputs/flutter-apk/app-x86_64-release.apk
+        asset_name: freelexity-v0.${{ github.run_number }}-x86_64.apk
         asset_content_type: application/vnd.android.package-archive
