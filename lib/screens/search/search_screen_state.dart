@@ -120,8 +120,6 @@ class SearchScreenState extends State<SearchScreen> {
             ThreadLoadingScreen(query: _searchController.text),
       ),
     );
-
-    await _searchService.performSearch(context, _searchController.text);
   }
 
   void _shareApp() {
