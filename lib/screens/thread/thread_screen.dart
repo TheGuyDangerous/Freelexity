@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'thread_screen_state.dart';
+import '../../widgets/thread/loading_shimmer.dart';
+import '../../services/search_service.dart';
 
 class ThreadScreen extends StatefulWidget {
   final String query;

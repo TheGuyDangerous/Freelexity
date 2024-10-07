@@ -266,7 +266,7 @@ class ThreadScreenState extends State<ThreadScreen>
               elevation: 0,
               actions: [
                 IconButton(
-                  icon: Icon(Iconsax.share),
+                  icon: Icon(Iconsax.export),
                   onPressed: _shareSearchResult,
                 ),
               ],

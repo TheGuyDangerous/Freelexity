@@ -14,9 +14,10 @@ class SearchService {
   int _retryCount = 0;
   static const int _maxRetries = 3;
 
-  Future<void> performSearch(BuildContext context, String query) async {
+  Future<Map<String, dynamic>> performSearch(
+      BuildContext context, String query) async {
     if (query.trim().isEmpty) {
-      return;
+      return {};
     }
 
     final prefs = await SharedPreferences.getInstance();
@@ -25,7 +26,7 @@ class SearchService {
     if (braveApiKey.isEmpty) {
       _showErrorToast('Please enter your Brave Search API key in settings.');
       Navigator.of(context).pop();
-      return;
+      return {}; // Return an empty map instead of just 'return;'
     }
 
     final url =
@@ -41,7 +42,6 @@ class SearchService {
         final data = json.decode(response.body);
         final results = List<Map<String, dynamic>>.from(data['web']['results']);
 
-        // Limit to top 5 results and process them in parallel
         final processedResults = await Future.wait(
           results.take(5).map((result) async {
             try {
@@ -63,25 +63,23 @@ class SearchService {
         final summary =
             await _groqApiService.summarizeContent(combinedContent, query);
 
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => ThreadScreen(
-              query: query,
-              searchResults: processedResults,
-              summary: summary,
-            ),
-          ),
-        );
+        return {
+          'query': query,
+          'searchResults': processedResults,
+          'summary': summary,
+        };
       } else if (response.statusCode == 429 && _retryCount < _maxRetries) {
         _retryCount++;
         await Future.delayed(Duration(seconds: pow(2, _retryCount).toInt()));
         return performSearch(context, query);
       } else {
         _handleApiError(context, 'Failed to perform search. Please try again.');
+        return {};
       }
     } catch (e) {
       _handleApiError(context,
           'An error occurred. Please check your internet connection and try again.');
+      return {};
     }
   }
 
