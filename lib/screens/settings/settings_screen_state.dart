@@ -133,145 +133,185 @@ class SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Settings',
-            style:
-                TextStyle(fontFamily: 'Raleway', fontWeight: FontWeight.bold)),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('API Keys', style: Theme.of(context).textTheme.titleLarge),
-            SizedBox(height: 16),
-            ApiKeyInput(
-              label: 'Brave Search API Key',
-              controller: _braveApiController,
-              icon: Iconsax.search_normal,
-            ),
-            ApiKeyInput(
-              label: 'Groq API Key',
-              controller: _groqApiController,
-              icon: Iconsax.code,
-            ),
-            SizedBox(height: 24),
-            Text('Privacy', style: Theme.of(context).textTheme.titleLarge),
-            SizedBox(height: 16),
-            SettingsSwitch(
-              title: 'Incognito Mode',
-              subtitle: 'Disable search history',
-              value: _isIncognitoMode,
-              onChanged: (value) {
-                setState(() {
-                  _isIncognitoMode = value;
-                });
-              },
-            ),
-            SizedBox(height: 24),
-            Text('Speech Recognition',
-                style: Theme.of(context).textTheme.titleLarge),
-            SizedBox(height: 16),
-            SettingsSwitch(
-              title: 'Use OpenAI Whisper Model',
-              subtitle: 'For improved speech recognition',
-              value: _useWhisperModel,
-              onChanged: (value) {
-                setState(() {
-                  _useWhisperModel = value;
-                });
-              },
-              trailing: IconButton(
-                icon: Icon(Iconsax.info_circle, color: Colors.white70),
-                onPressed: _showWhisperInfoDialog,
-              ),
-            ),
-            SizedBox(height: 24),
-            SettingsSwitch(
-              title: 'Dark Mode',
-              subtitle: 'Toggle dark/light theme',
-              value: themeProvider.isDarkMode,
-              onChanged: (value) {
-                themeProvider.toggleTheme();
-              },
-            ),
-            SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _isValidating ? null : _validateApiKeys,
-              child: Container(
-                width: double.infinity,
-                child: Center(
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Settings',
+                style: TextStyle(
+                    fontFamily: 'Raleway', fontWeight: FontWeight.bold)),
+          ),
+          body: SingleChildScrollView(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('API Keys',
+                    style: TextStyle(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.black,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
+                SizedBox(height: 16),
+                ApiKeyInput(
+                  label: 'Brave Search API Key',
+                  controller: _braveApiController,
+                  icon: Iconsax.search_normal,
+                ),
+                ApiKeyInput(
+                  label: 'Groq API Key',
+                  controller: _groqApiController,
+                  icon: Iconsax.code,
+                ),
+                SizedBox(height: 24),
+                Text('Privacy',
+                    style: TextStyle(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white70
+                            : Colors.grey[600],
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
+                SizedBox(height: 16),
+                SettingsSwitch(
+                  isDarkMode: Theme.of(context).brightness == Brightness.dark,
+                  title: 'Incognito Mode',
+                  subtitle: 'Disable search history',
+                  value: _isIncognitoMode,
+                  onChanged: (value) {
+                    setState(() {
+                      _isIncognitoMode = value;
+                    });
+                  },
+                ),
+                SizedBox(height: 24),
+                Text('Speech Recognition',
+                    style: TextStyle(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white70
+                            : Colors.grey[600],
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
+                SizedBox(height: 16),
+                SettingsSwitch(
+                  title: 'Use OpenAI Whisper Model',
+                  subtitle: 'For improved speech recognition',
+                  value: _useWhisperModel,
+                  onChanged: (value) {
+                    setState(() {
+                      _useWhisperModel = value;
+                    });
+                  },
+                  trailing: IconButton(
+                    icon: Icon(Iconsax.info_circle,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey[600]
+                            : Colors.black),
+                    onPressed: _showWhisperInfoDialog,
+                  ),
+                  isDarkMode: Theme.of(context).brightness == Brightness.dark,
+                ),
+                SizedBox(height: 24),
+                SettingsSwitch(
+                  isDarkMode: Theme.of(context).brightness == Brightness.dark,
+                  title: 'Dark Mode',
+                  subtitle: 'Toggle dark/light theme',
+                  value: themeProvider.isDarkMode,
+                  onChanged: (value) {
+                    themeProvider.toggleTheme();
+                  },
+                ),
+                SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _isValidating ? null : _validateApiKeys,
                   child: _isValidating
                       ? SizedBox(
                           width: 24,
                           height: 24,
                           child: CircularProgressIndicator(
-                            color: Colors.white,
+                            color: Colors.grey[600],
                             strokeWidth: 2,
                           ),
                         )
                       : Text('Validate and Save Settings'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: themeProvider.isDarkMode
+                        ? Colors.grey[800]
+                        : Colors.grey[800],
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    minimumSize:
+                        Size(double.infinity, 50), // Ensure consistent height
+                  ),
                 ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey[800],
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                SizedBox(height: 32),
+                Text('About',
+                    style: TextStyle(
+                        color: themeProvider.isDarkMode
+                            ? Colors.white
+                            : Colors.black,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
+                SizedBox(height: 16),
+                ListTile(
+                  leading: Icon(Iconsax.info_circle,
+                      color: themeProvider.isDarkMode
+                          ? Colors.white70
+                          : Colors.grey[600]),
+                  title: Text('Version'),
+                  subtitle: Text(AppConstants.appVersion),
                 ),
-                minimumSize:
-                    Size(double.infinity, 50), // Ensure consistent height
-              ),
-            ),
-            SizedBox(height: 32),
-            Text('About', style: Theme.of(context).textTheme.titleLarge),
-            SizedBox(height: 16),
-            ListTile(
-              leading: Icon(Iconsax.info_circle, color: Colors.white70),
-              title: Text('Version'),
-              subtitle: Text(AppConstants.appVersion),
-            ),
-            ListTile(
-              leading: Icon(Iconsax.document, color: Colors.white70),
-              title: Text('License'),
-              subtitle: Text('Custom License'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LicenseScreen()),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Iconsax.code, color: Colors.white70),
-              title: Text('Source Code'),
-              subtitle: Text('GitHub'),
-              onTap: () => _launchURL(AppConstants.githubUrl),
-            ),
-            SizedBox(height: 32),
-            Center(
-              child: Text(
-                'Created with ❣️ by Sannidhya Dubey',
-                style: TextStyle(
-                  fontFamily: 'Raleway',
-                  color: Colors.white70,
-                  fontSize: 14,
+                ListTile(
+                  leading: Icon(Iconsax.document,
+                      color: themeProvider.isDarkMode
+                          ? Colors.white70
+                          : Colors.grey[600]),
+                  title: Text('License'),
+                  subtitle: Text('Custom License'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LicenseScreen()),
+                    );
+                  },
                 ),
-              ),
+                ListTile(
+                  leading: Icon(Iconsax.code,
+                      color: themeProvider.isDarkMode
+                          ? Colors.white70
+                          : Colors.grey[600]),
+                  title: Text('Source Code'),
+                  subtitle: Text('GitHub'),
+                  onTap: () => _launchURL(AppConstants.githubUrl),
+                ),
+                SizedBox(height: 32),
+                Center(
+                  child: Text(
+                    'Created with ❣️ by Sannidhya Dubey',
+                    style: TextStyle(
+                      fontFamily: 'Raleway',
+                      color: themeProvider.isDarkMode
+                          ? Colors.white70
+                          : Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   Future<void> _launchURL(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
     } else {
       Fluttertoast.showToast(msg: "Could not launch $url");
     }

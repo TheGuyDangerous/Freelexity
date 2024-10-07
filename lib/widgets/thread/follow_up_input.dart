@@ -20,7 +20,7 @@ class FollowUpInput extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark
             ? Colors.grey[900]
-            : Colors.grey[100],
+            : Colors.grey[300], // Slightly darker grey for light mode
         borderRadius: BorderRadius.circular(30),
       ),
       child: Row(

@@ -20,7 +20,9 @@ class SummaryCard extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Card(
-      color: themeProvider.isDarkMode ? Colors.grey[900] : Colors.grey[100],
+      color: themeProvider.isDarkMode
+          ? Colors.grey[900]
+          : Colors.grey[300], // Slightly darker grey for light mode
       margin: EdgeInsets.all(16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(

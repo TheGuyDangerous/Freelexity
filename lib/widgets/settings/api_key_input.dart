@@ -17,7 +17,9 @@ class ApiKeyInput extends StatelessWidget {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey[900]
+            : Colors.grey[800],
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(

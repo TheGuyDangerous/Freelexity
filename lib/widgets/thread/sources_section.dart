@@ -30,7 +30,7 @@ class SourcesSection extends StatelessWidget {
               decoration: BoxDecoration(
                 color: themeProvider.isDarkMode
                     ? Colors.grey[800]
-                    : Colors.grey[200],
+                    : Colors.grey[300], // Slightly darker grey for light mode
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(

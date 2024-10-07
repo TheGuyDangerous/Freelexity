@@ -24,7 +24,13 @@ class HistoryList extends StatelessWidget {
       itemCount: searchHistory.length + 1,
       separatorBuilder: (context, index) {
         if (index == 0) return SizedBox.shrink();
-        return Divider(color: Colors.grey[800], height: 1, thickness: 0.5);
+        return Divider(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey[800]
+              : Colors.grey[200],
+          height: 1,
+          thickness: 0.5,
+        );
       },
       itemBuilder: (context, index) {
         if (index == 0) {
@@ -97,7 +103,9 @@ class HistoryList extends StatelessWidget {
           onItemTap(item['query']);
         },
         child: Card(
-          color: Colors.black,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey[900]
+              : Colors.grey[100], // Make the container transparent
           margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -106,33 +114,29 @@ class HistoryList extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        item['query'],
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Text(
-                      _formatTimestamp(item['timestamp']),
-                      style: TextStyle(color: Colors.white60, fontSize: 12),
-                    ),
-                  ],
+                Text(
+                  item['query'],
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 8),
                 Text(
                   item['summary'] != null
                       ? _truncateSummary(item['summary'])
                       : 'No summary available',
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white70
+                        : Colors.black87,
+                    fontSize: 14,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
