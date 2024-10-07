@@ -15,6 +15,7 @@ import '../../widgets/search/search_bar.dart';
 import 'search_screen.dart';
 import 'package:provider/provider.dart';
 import '../../theme_provider.dart';
+import '../../screens/thread/thread_loading_screen.dart';
 
 class SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
@@ -113,7 +114,12 @@ class SearchScreenState extends State<SearchScreen> {
       return;
     }
 
-    _showLoadingDialog();
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) =>
+            ThreadLoadingScreen(query: _searchController.text),
+      ),
+    );
 
     await _searchService.performSearch(context, _searchController.text);
   }
@@ -122,24 +128,6 @@ class SearchScreenState extends State<SearchScreen> {
     copyToClipboard(
       "Try Freelexity:\nhttps://www.github.com/TheGuyDangerous/Freelexity",
       message: "Share link copied to clipboard",
-    );
-  }
-
-  void _showLoadingDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          content: Row(
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(width: 20),
-              Text("Searching..."),
-            ],
-          ),
-        );
-      },
     );
   }
 

@@ -22,7 +22,7 @@ class ThreadScreenState extends State<ThreadScreen>
   late Animation<double> _animation;
   final TextEditingController _followUpController = TextEditingController();
   List<String> _relatedQuestions = [];
-  List<String> _images = [];
+  List<Map<String, String?>> _images = []; // Change the type here
   bool _isIncognitoMode = false;
   bool _isSpeaking = false;
   late FlutterTts _flutterTts;
@@ -160,8 +160,17 @@ class ThreadScreenState extends State<ThreadScreen>
         final results = List<Map<String, dynamic>>.from(data['results']);
         setState(() {
           _images = results
-              .map((result) => result['thumbnail']['src'] as String)
-              .where((url) => url != null && url.isNotEmpty)
+              .map((result) {
+                final imageUrl = result['thumbnail']['src'] as String?;
+                print('Image URL: $imageUrl'); // Add this line for debugging
+                return {
+                  'url': imageUrl,
+                  'websiteName': result['source'] as String? ?? 'Unknown',
+                  'favicon': result['favicon'] as String?,
+                };
+              })
+              .where((imageData) =>
+                  imageData['url'] != null && imageData['url']!.isNotEmpty)
               .toList();
         });
       } else {
@@ -293,7 +302,8 @@ class ThreadScreenState extends State<ThreadScreen>
                           SliverToBoxAdapter(
                               child: SummaryCard(
                                   summary: widget.summary,
-                                  onSpeakPressed: _toggleSpeech)),
+                                  onSpeakPressed: _toggleSpeech,
+                                  isSpeaking: _isSpeaking)),
                           SliverToBoxAdapter(
                               child: RelatedQuestions(
                                   questions: _relatedQuestions)),

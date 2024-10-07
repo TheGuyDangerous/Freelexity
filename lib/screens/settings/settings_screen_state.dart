@@ -201,9 +201,21 @@ class SettingsScreenState extends State<SettingsScreen> {
             SizedBox(height: 24),
             ElevatedButton(
               onPressed: _isValidating ? null : _validateApiKeys,
-              child: _isValidating
-                  ? CircularProgressIndicator(color: Colors.white)
-                  : Text('Validate and Save Settings'),
+              child: Container(
+                width: double.infinity,
+                child: Center(
+                  child: _isValidating
+                      ? SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text('Validate and Save Settings'),
+                ),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.grey[800],
                 foregroundColor: Colors.white,
@@ -211,6 +223,8 @@ class SettingsScreenState extends State<SettingsScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+                minimumSize:
+                    Size(double.infinity, 50), // Ensure consistent height
               ),
             ),
             SizedBox(height: 32),

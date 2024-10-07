@@ -6,11 +6,13 @@ import '../../theme_provider.dart';
 class SummaryCard extends StatelessWidget {
   final String summary;
   final Function(String) onSpeakPressed;
+  final bool isSpeaking;
 
   const SummaryCard({
     Key? key,
     required this.summary,
     required this.onSpeakPressed,
+    required this.isSpeaking,
   }) : super(key: key);
 
   @override
@@ -39,11 +41,12 @@ class SummaryCard extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Iconsax.volume_high,
-                      color: themeProvider.isDarkMode
-                          ? Colors.white
-                          : Colors.black,
-                      size: 20),
+                  icon: Icon(
+                    isSpeaking ? Iconsax.volume_slash : Iconsax.volume_high,
+                    color:
+                        themeProvider.isDarkMode ? Colors.white : Colors.black,
+                    size: 20,
+                  ),
                   onPressed: () => onSpeakPressed(summary),
                 ),
               ],
