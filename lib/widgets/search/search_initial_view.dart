@@ -15,13 +15,21 @@ class SearchInitialView extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 250,
-            height: 250,
-            child: Lottie.asset(
-              'assets/loading_animation.json',
-              fit: BoxFit.contain,
-              repeat: true,
-              animate: true,
+            width: 350,
+            height: 200,
+            child: AnimatedSwitcher(
+              duration: Duration(milliseconds: 300),
+              child: Lottie.asset(
+                key: ValueKey<bool>(themeProvider.isDarkMode),
+                themeProvider.isDarkMode
+                    ? 'assets/freelexity-lightgrey.json'
+                    : 'assets/freelexity-lightgrey.json',
+                fit: BoxFit.contain,
+                repeat: true,
+                animate: true,
+                frameRate:
+                    FrameRate(120), // This slows down the animation to 0.5x
+              ),
             ),
           ),
           SizedBox(height: 24),

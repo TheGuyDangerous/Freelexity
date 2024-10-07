@@ -25,7 +25,6 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Force navigation after 1.5 seconds, regardless of animation state
     _timer = Timer(Duration(milliseconds: 1500), () {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => HomeScreen()),
@@ -48,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
       body: Center(
         child: Lottie.asset(
-          'assets/loading_animation.json',
+          'assets/splash-light.json',
           controller: _controller,
           fit: BoxFit.contain,
         ),
