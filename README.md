@@ -95,7 +95,7 @@ Freelexity combines web search, content scraping, and AI-powered summarization t
 
 ## File Structure
 
-```bash
+```
 lib/
 ├── main.dart
 ├── custom_page_route.dart
