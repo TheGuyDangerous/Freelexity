@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:freelexity/screens/splash_screen.dart';
-import 'package:freelexity/theme/app_theme.dart';
-import 'package:freelexity/theme_provider.dart';
+import 'package:Freelexity/screens/splash_screen.dart';
+import 'package:Freelexity/theme/app_theme.dart';
+import 'package:Freelexity/theme_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

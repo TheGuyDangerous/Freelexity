@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
-import 'package:freelexity/screens/search/search_screen.dart';
-import 'package:freelexity/screens/library/library_screen.dart';
-import 'package:freelexity/screens/settings/settings_screen.dart';
-import 'package:freelexity/theme_provider.dart';
+import 'package:Freelexity/screens/search/search_screen.dart';
+import 'package:Freelexity/screens/library/library_screen.dart';
+import 'package:Freelexity/screens/settings/settings_screen.dart';
+import 'package:Freelexity/theme_provider.dart';
 import 'package:flutter/services.dart';
 
 class HomeScreen extends StatefulWidget {

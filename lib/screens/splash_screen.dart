@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:freelexity/screens/home/home_screen.dart';
+import 'package:Freelexity/screens/home/home_screen.dart';
 import 'package:provider/provider.dart';
 import '../theme_provider.dart';
 import 'dart:async';
