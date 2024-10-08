@@ -1,0 +1,69 @@
+import 'package:flutter/material.dart';
+import '../../widgets/thread/loading_shimmer.dart';
+import '../../services/search_service.dart';
+import 'thread_screen.dart';
+import '../../theme_provider.dart';
+import 'package:provider/provider.dart';
+
+class ThreadLoadingScreen extends StatefulWidget {
+  final String query;
+
+  const ThreadLoadingScreen({super.key, required this.query});
+
+  @override
+  State<ThreadLoadingScreen> createState() => _ThreadLoadingScreenState();
+}
+
+class _ThreadLoadingScreenState extends State<ThreadLoadingScreen> {
+  final SearchService _searchService = SearchService();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _performSearch();
+    });
+  }
+
+  Future<void> _performSearch() async {
+    final results = await _searchService.performSearch(context, widget.query);
+    if (mounted) {
+      if (results != null) {
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                ThreadScreen(
+              query: results['query'],
+              searchResults: results['searchResults'],
+              summary: results['summary'],
+            ),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+            transitionDuration: Duration(milliseconds: 300),
+          ),
+        );
+      } else {
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
+    return Scaffold(
+      backgroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
+      appBar: AppBar(
+        title: Text('Searching...'),
+        backgroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
+        foregroundColor: themeProvider.isDarkMode ? Colors.white : Colors.black,
+      ),
+      body: SingleChildScrollView(
+        child: LoadingShimmer(isDarkMode: themeProvider.isDarkMode),
+      ),
+    );
+  }
+}

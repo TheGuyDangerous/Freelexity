@@ -95,23 +95,67 @@ Freelexity combines web search, content scraping, and AI-powered summarization t
 
 ## File Structure
 
-```bash
+<details>
+<summary>Click to expand/collapse file structure</summary>
+
+```
 lib/
 ├── main.dart
 ├── custom_page_route.dart
+├── theme_provider.dart
 ├── screens/
-│ ├── search_screen.dart
-│ ├── library_screen.dart
-│ ├── settings_screen.dart
-│ ├── thread_screen.dart
-│ ├── thread_loading_screen.dart
-│ └── license_screen.dart
-└── services/
-├── search_service.dart
-├── web_scraper_service.dart
-├── groq_api_service.dart
-└── grok_api_service.dart
+│ ├── home/
+│ │ ├── home_screen.dart
+│ ├── search/
+│ │ ├── search_screen.dart
+│ │ └── search_screen_state.dart
+│ ├── thread/
+│ │ ├── thread_screen.dart
+│ │ ├── thread_screen_state.dart
+│ │ └── thread_loading_screen.dart
+│ ├── library/
+│ │ ├── library_screen.dart
+│ │ └── library_screen_state.dart
+│ ├── settings/
+│ │ ├── settings_screen.dart
+│ │ └── settings_screen_state.dart
+│ ├── license/
+│ │ └── license_screen.dart
+│ └── splash_screen.dart
+├── widgets/
+│ ├── search/
+│ │ ├── search_app_bar.dart
+│ │ ├── search_initial_view.dart
+│ │ └── search_bar.dart
+│ ├── thread/
+│ │ ├── sources_section.dart
+│ │ ├── summary_card.dart
+│ │ ├── image_section.dart
+│ │ ├── related_questions.dart
+│ │ ├── follow_up_input.dart
+│ │ ├── full_screen_image.dart
+│ │ └── loading_shimmer.dart
+│ ├── library/
+│ │ ├── history_list.dart
+│ │ ├── empty_state.dart
+│ │ └── incognito_message.dart
+│ └── settings/
+│ ├── api_key_input.dart
+│ └── settings_switch.dart
+├── services/
+│ ├── search_service.dart
+│ ├── web_scraper_service.dart
+│ ├── groq_api_service.dart
+│ └── whisper_service.dart
+├── utils/
+│ ├── audio_helpers.dart
+│ ├── clipboard_helper.dart
+│ └── constants.dart
+└── theme/
+└── app_theme.dart
 ```
+
+</details>
 
 ## Workflow
 
@@ -120,6 +164,15 @@ lib/
 3. **Thread Screen**: Shows the search results, summary, and related questions.
 4. **Library Screen**: Displays the user's search history.
 5. **Settings Screen**: Allows users to input API keys and view app information.
+
+- The main entry point (`main.dart`)
+- Custom route transition (`custom_page_route.dart`)
+- Theme provider for managing app-wide theme state (`theme_provider.dart`)
+- Screens for different parts of the app (home, search, thread, library, settings, license, and splash)
+- Reusable widgets organized by their respective screens
+- Services for handling API calls, web scraping, and other functionalities
+- Utility functions and constants
+- Theme-related configurations
 
 ## License
 

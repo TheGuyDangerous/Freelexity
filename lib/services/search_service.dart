@@ -5,7 +5,6 @@ import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/web_scraper_service.dart';
 import '../services/groq_api_service.dart';
-import '../screens/thread_screen.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class SearchService {
@@ -14,18 +13,18 @@ class SearchService {
   int _retryCount = 0;
   static const int _maxRetries = 3;
 
-  Future<void> performSearch(BuildContext context, String query) async {
+  Future<Map<String, dynamic>?> performSearch(
+      BuildContext context, String query) async {
     if (query.trim().isEmpty) {
-      return;
+      return null;
     }
 
     final prefs = await SharedPreferences.getInstance();
     final braveApiKey = prefs.getString('braveApiKey') ?? '';
 
     if (braveApiKey.isEmpty) {
-      _showErrorToast('Please enter your Brave Search API key in settings.');
-      Navigator.of(context).pop();
-      return;
+      _showErrorToast('Please enter your API keys first.');
+      return null;
     }
 
     final url =
@@ -41,7 +40,6 @@ class SearchService {
         final data = json.decode(response.body);
         final results = List<Map<String, dynamic>>.from(data['web']['results']);
 
-        // Limit to top 5 results and process them in parallel
         final processedResults = await Future.wait(
           results.take(5).map((result) async {
             try {
@@ -50,7 +48,7 @@ class SearchService {
               result['scrapedContent'] = _preprocessContent(scrapedContent);
               return result;
             } catch (e) {
-              print('Error processing content for ${result['url']}: $e');
+              debugPrint('Error processing content for ${result['url']}: $e');
               return result;
             }
           }),
@@ -63,44 +61,36 @@ class SearchService {
         final summary =
             await _groqApiService.summarizeContent(combinedContent, query);
 
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => ThreadScreen(
-              query: query,
-              searchResults: processedResults,
-              summary: summary,
-            ),
-          ),
-        );
+        return {
+          'query': query,
+          'searchResults': processedResults,
+          'summary': summary,
+        };
       } else if (response.statusCode == 429 && _retryCount < _maxRetries) {
         _retryCount++;
         await Future.delayed(Duration(seconds: pow(2, _retryCount).toInt()));
+        if (!context.mounted) return null;
         return performSearch(context, query);
       } else {
-        _showErrorDialog(
-            context, 'Failed to perform search. Please try again.');
-        Navigator.of(context).pop();
+        if (context.mounted) {
+          _handleApiError(
+              context, 'Failed to perform search. Please try again.');
+        }
+        return null;
       }
     } catch (e) {
-      if (_retryCount < _maxRetries) {
-        _retryCount++;
-        await Future.delayed(Duration(seconds: pow(2, _retryCount).toInt()));
-        return performSearch(context, query);
-      } else {
-        _showErrorToast(
+      if (context.mounted) {
+        _handleApiError(context,
             'An error occurred. Please check your internet connection and try again.');
-        Navigator.of(context).pop();
       }
-    } finally {
-      _retryCount = 0;
+      return null;
     }
   }
 
   String _preprocessContent(String content) {
-    return content
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim()
-        .substring(0, min(500, content.length)); // Reduced to 500 characters
+    final trimmedContent = content.replaceAll(RegExp(r'\s+'), ' ').trim();
+    final maxLength = trimmedContent.length < 500 ? trimmedContent.length : 500;
+    return trimmedContent.substring(0, maxLength);
   }
 
   void _showErrorToast(String message) {
@@ -114,19 +104,29 @@ class SearchService {
         fontSize: 16.0);
   }
 
-  void _showErrorDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Error'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('OK'),
-          ),
-        ],
-      ),
+  void _handleApiError(BuildContext context, String message) {
+    Navigator.of(context).pop(); // Remove loading screen
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
     );
+  }
+
+  Future<bool> validateBraveApiKey(String apiKey) async {
+    final url =
+        Uri.parse('https://api.search.brave.com/res/v1/web/search?q=test');
+    try {
+      final response = await http.get(
+        url,
+        headers: {'X-Subscription-Token': apiKey},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Error validating Brave API key: $e');
+      return false;
+    }
   }
 }
