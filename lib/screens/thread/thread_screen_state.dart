@@ -14,6 +14,7 @@ import '../../services/search_service.dart';
 import 'thread_screen.dart';
 import 'package:provider/provider.dart';
 import '../../theme_provider.dart';
+import '../../utils/constants.dart';
 
 class ThreadScreenState extends State<ThreadScreen>
     with SingleTickerProviderStateMixin {
@@ -218,7 +219,7 @@ class ThreadScreenState extends State<ThreadScreen>
 
   void _shareSearchResult() {
     final String shareText =
-        'Query: ${widget.query}\n\nAnswer: ${widget.summary}\n\nSearch with Freelexity: https://github.com/TheGuyDangerous/Freelexity';
+        'Query: ${widget.query}\n\nAnswer: ${widget.summary}\n\nSearch with ${AppConstants.appName}: ${AppConstants.githubUrl}';
     Clipboard.setData(ClipboardData(text: shareText)).then((_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -15,6 +15,7 @@ import 'search_screen.dart';
 import 'package:provider/provider.dart';
 import '../../theme_provider.dart';
 import '../../screens/thread/thread_loading_screen.dart';
+import '../../utils/constants.dart';
 
 class SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
@@ -123,7 +124,7 @@ class SearchScreenState extends State<SearchScreen> {
 
   void _shareApp() {
     copyToClipboard(
-      "Try Freelexity:\nhttps://www.github.com/TheGuyDangerous/Freelexity",
+      "Try ${AppConstants.appName}:\n${AppConstants.githubUrl}",
       message: "Share link copied to clipboard",
     );
   }

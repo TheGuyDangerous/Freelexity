@@ -69,14 +69,20 @@ class SearchService {
       } else if (response.statusCode == 429 && _retryCount < _maxRetries) {
         _retryCount++;
         await Future.delayed(Duration(seconds: pow(2, _retryCount).toInt()));
+        if (!context.mounted) return null;
         return performSearch(context, query);
       } else {
-        _handleApiError(context, 'Failed to perform search. Please try again.');
+        if (context.mounted) {
+          _handleApiError(
+              context, 'Failed to perform search. Please try again.');
+        }
         return null;
       }
     } catch (e) {
-      _handleApiError(context,
-          'An error occurred. Please check your internet connection and try again.');
+      if (context.mounted) {
+        _handleApiError(context,
+            'An error occurred. Please check your internet connection and try again.');
+      }
       return null;
     }
   }

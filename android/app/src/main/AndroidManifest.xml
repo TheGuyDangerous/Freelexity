@@ -14,9 +14,9 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true">
-        <meta-data
+        <!-- <meta-data
             android:name="io.flutter.embedding.android.EnableImpeller"
-            android:value="true" />
+            android:value="true" /> -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

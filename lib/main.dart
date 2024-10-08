@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import '../screens/splash_screen.dart';
 import '../theme/app_theme.dart';
 import '../theme_provider.dart';
+import './utils/constants.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppConstants.initialize();
   runApp(
     ChangeNotifierProvider(
       create: (context) => ThemeProvider(),
@@ -22,7 +24,7 @@ class MyApp extends StatelessWidget {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return MaterialApp(
-          title: 'Freelexity',
+          title: AppConstants.appName,
           theme: themeProvider.isDarkMode
               ? AppTheme.darkTheme
               : AppTheme.lightTheme,
