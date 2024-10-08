@@ -115,9 +115,13 @@ class SearchScreenState extends State<SearchScreen> {
     }
 
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) =>
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
             ThreadLoadingScreen(query: _searchController.text),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        transitionDuration: Duration(milliseconds: 300),
       ),
     );
   }

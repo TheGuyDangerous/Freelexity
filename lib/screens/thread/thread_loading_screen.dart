@@ -20,21 +20,34 @@ class _ThreadLoadingScreenState extends State<ThreadLoadingScreen> {
   @override
   void initState() {
     super.initState();
-    _performSearch();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _performSearch();
+    });
   }
 
   Future<void> _performSearch() async {
     final results = await _searchService.performSearch(context, widget.query);
     if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => ThreadScreen(
-            query: results['query'],
-            searchResults: results['searchResults'],
-            summary: results['summary'],
+      if (results != null) {
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                ThreadScreen(
+              query: results['query'],
+              searchResults: results['searchResults'],
+              summary: results['summary'],
+            ),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+            transitionDuration: Duration(milliseconds: 300),
           ),
-        ),
-      );
+        );
+      } else {
+        // If results are null, navigate back to the previous screen
+        Navigator.of(context).pop();
+      }
     }
   }
 
@@ -49,7 +62,9 @@ class _ThreadLoadingScreenState extends State<ThreadLoadingScreen> {
         backgroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
         foregroundColor: themeProvider.isDarkMode ? Colors.white : Colors.black,
       ),
-      body: LoadingShimmer(isDarkMode: themeProvider.isDarkMode),
+      body: SingleChildScrollView(
+        child: LoadingShimmer(isDarkMode: themeProvider.isDarkMode),
+      ),
     );
   }
 }

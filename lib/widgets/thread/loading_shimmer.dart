@@ -8,16 +8,18 @@ class LoadingShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: isDarkMode ? Colors.grey[900]! : Colors.grey[300]!,
-      highlightColor: isDarkMode ? Colors.grey[800]! : Colors.grey[100]!,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSourcesShimmer(),
-          _buildSummaryShimmer(),
-          ...List.generate(5, (_) => _buildResultShimmer()),
-        ],
+    return SingleChildScrollView(
+      child: Shimmer.fromColors(
+        baseColor: isDarkMode ? Colors.grey[900]! : Colors.grey[300]!,
+        highlightColor: isDarkMode ? Colors.grey[800]! : Colors.grey[100]!,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSourcesShimmer(),
+            _buildSummaryShimmer(),
+            ...List.generate(5, (_) => _buildResultShimmer()),
+          ],
+        ),
       ),
     );
   }

@@ -11,6 +11,7 @@ import '../../theme_provider.dart';
 import 'library_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:iconsax/iconsax.dart';
 
 const int MAX_HISTORY_ITEMS = 50;
 
@@ -56,13 +57,6 @@ class LibraryScreenState extends State<LibraryScreen> {
         backgroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
         foregroundColor: themeProvider.isDarkMode ? Colors.white : Colors.black,
         elevation: 0,
-        actions: [
-          if (_searchHistory.isNotEmpty)
-            IconButton(
-              icon: Icon(Icons.delete_sweep),
-              onPressed: _clearAllHistory,
-            ),
-        ],
       ),
       body: SmartRefresher(
         controller: _refreshController,
@@ -150,15 +144,5 @@ class LibraryScreenState extends State<LibraryScreen> {
   void dispose() {
     _refreshController.dispose();
     super.dispose();
-  }
-
-  Future<void> _exportSearchHistory() async {
-    final String historyJson = jsonEncode(_searchHistory);
-    // Implement file writing logic here, or use a package like path_provider to save the file
-    // For now, we'll just print the JSON
-    print(historyJson);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Search history exported')),
-    );
   }
 }

@@ -14,19 +14,18 @@ class SearchService {
   int _retryCount = 0;
   static const int _maxRetries = 3;
 
-  Future<Map<String, dynamic>> performSearch(
+  Future<Map<String, dynamic>?> performSearch(
       BuildContext context, String query) async {
     if (query.trim().isEmpty) {
-      return {};
+      return null;
     }
 
     final prefs = await SharedPreferences.getInstance();
     final braveApiKey = prefs.getString('braveApiKey') ?? '';
 
     if (braveApiKey.isEmpty) {
-      _showErrorToast('Please enter your Brave Search API key in settings.');
-      Navigator.of(context).pop();
-      return {}; // Return an empty map instead of just 'return;'
+      _showErrorToast('Please enter your API keys first.');
+      return null;
     }
 
     final url =
@@ -74,12 +73,12 @@ class SearchService {
         return performSearch(context, query);
       } else {
         _handleApiError(context, 'Failed to perform search. Please try again.');
-        return {};
+        return null;
       }
     } catch (e) {
       _handleApiError(context,
           'An error occurred. Please check your internet connection and try again.');
-      return {};
+      return null;
     }
   }
 

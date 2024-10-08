@@ -5,7 +5,7 @@ import '../../theme_provider.dart';
 import 'full_screen_image.dart';
 
 class ImageSection extends StatelessWidget {
-  final List<Map<String, String?>> images; // Change the type here
+  final List<Map<String, String?>> images;
 
   const ImageSection({Key? key, required this.images}) : super(key: key);
 
