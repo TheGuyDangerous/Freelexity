@@ -9,7 +9,7 @@ on:
 jobs:
   version-bump:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
     steps:
       - uses: actions/checkout@v3
         with:
@@ -50,6 +50,7 @@ jobs:
   build_and_release:
     needs: version-bump
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
     steps:
     - uses: actions/checkout@v3
     
