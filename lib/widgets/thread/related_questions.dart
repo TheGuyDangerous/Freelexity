@@ -7,7 +7,7 @@ import '../../screens/thread/thread_loading_screen.dart';
 class RelatedQuestions extends StatelessWidget {
   final List<String> questions;
 
-  const RelatedQuestions({Key? key, required this.questions}) : super(key: key);
+  const RelatedQuestions({super.key, required this.questions});
 
   @override
   Widget build(BuildContext context) {

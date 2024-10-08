@@ -11,7 +11,6 @@ import '../../widgets/thread/image_section.dart';
 import '../../widgets/thread/related_questions.dart';
 import '../../widgets/thread/follow_up_input.dart';
 import '../../services/search_service.dart';
-import '../../services/groq_api_service.dart';
 import 'thread_screen.dart';
 import 'package:provider/provider.dart';
 import '../../theme_provider.dart';
@@ -26,7 +25,7 @@ class ThreadScreenState extends State<ThreadScreen>
   bool _isIncognitoMode = false;
   bool _isSpeaking = false;
   late FlutterTts _flutterTts;
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   @override
   void initState() {
@@ -87,7 +86,7 @@ class ThreadScreenState extends State<ThreadScreen>
     final groqApiKey = prefs.getString('groqApiKey') ?? '';
 
     if (groqApiKey.isEmpty) {
-      print('Groq API key is not set');
+      debugPrint('Groq API key is not set');
       return;
     }
 
@@ -130,10 +129,10 @@ class ThreadScreenState extends State<ThreadScreen>
               .toList();
         });
       } else {
-        print('Failed to fetch related questions: ${response.statusCode}');
+        debugPrint('Failed to fetch related questions: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching related questions: $e');
+      debugPrint('Error fetching related questions: $e');
     }
   }
 
@@ -142,7 +141,7 @@ class ThreadScreenState extends State<ThreadScreen>
     final braveApiKey = prefs.getString('braveApiKey') ?? '';
 
     if (braveApiKey.isEmpty) {
-      print('Brave API key is not set');
+      debugPrint('Brave API key is not set');
       return;
     }
 
@@ -162,7 +161,8 @@ class ThreadScreenState extends State<ThreadScreen>
           _images = results
               .map((result) {
                 final imageUrl = result['thumbnail']['src'] as String?;
-                print('Image URL: $imageUrl'); // Add this line for debugging
+                debugPrint(
+                    'Image URL: $imageUrl'); // Add this line for debugging
                 return {
                   'url': imageUrl,
                   'websiteName': result['source'] as String? ?? 'Unknown',
@@ -174,13 +174,13 @@ class ThreadScreenState extends State<ThreadScreen>
               .toList();
         });
       } else {
-        print('Failed to fetch images: ${response.statusCode}');
+        debugPrint('Failed to fetch images: ${response.statusCode}');
         setState(() {
           _images = [];
         });
       }
     } catch (e) {
-      print('Error fetching images: $e');
+      debugPrint('Error fetching images: $e');
       setState(() {
         _images = [];
       });
@@ -218,11 +218,13 @@ class ThreadScreenState extends State<ThreadScreen>
 
   void _shareSearchResult() {
     final String shareText =
-        'Query: ${widget.query}\n\nSummary: ${widget.summary}\n\nSearch with Freelexity: https://github.com/TheGuyDangerous/Freelexity';
+        'Query: ${widget.query}\n\nAnswer: ${widget.summary}\n\nSearch with Freelexity: https://github.com/TheGuyDangerous/Freelexity';
     Clipboard.setData(ClipboardData(text: shareText)).then((_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Search result copied to clipboard')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Search result copied to clipboard')),
+        );
+      }
     });
   }
 
@@ -329,11 +331,5 @@ class ThreadScreenState extends State<ThreadScreen>
         );
       },
     );
-  }
-
-  void _setLoading(bool value) {
-    setState(() {
-      _isLoading = value;
-    });
   }
 }

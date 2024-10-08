@@ -28,7 +28,7 @@ class GroqApiService {
             {
               'role': 'system',
               'content':
-                  'Summarize the following content concisely, focusing on the user query.'
+                  'You are a helpful Search Summarizer Assistant. Summarize the following content concisely, focusing on the user query. Don\'t include the user query in the summary, or act like you are an AI.'
             },
             {'role': 'user', 'content': 'Query: $userQuery\nContent: $content'},
           ],

@@ -8,11 +8,11 @@ class FullScreenImage extends StatelessWidget {
   final String? favicon;
 
   const FullScreenImage({
-    Key? key,
+    super.key,
     required this.imageUrl,
     required this.websiteName,
     this.favicon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

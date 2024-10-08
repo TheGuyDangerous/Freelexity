@@ -4,7 +4,7 @@ import 'package:shimmer/shimmer.dart';
 class LoadingShimmer extends StatelessWidget {
   final bool isDarkMode;
 
-  const LoadingShimmer({Key? key, required this.isDarkMode}) : super(key: key);
+  const LoadingShimmer({super.key, required this.isDarkMode});
 
   @override
   Widget build(BuildContext context) {

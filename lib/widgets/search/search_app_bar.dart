@@ -6,8 +6,7 @@ import '../../theme_provider.dart';
 class SearchAppBar extends StatelessWidget {
   final VoidCallback onSharePressed;
 
-  const SearchAppBar({Key? key, required this.onSharePressed})
-      : super(key: key);
+  const SearchAppBar({super.key, required this.onSharePressed});
 
   @override
   Widget build(BuildContext context) {

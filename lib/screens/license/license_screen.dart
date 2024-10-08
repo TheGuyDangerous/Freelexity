@@ -3,8 +3,7 @@ import 'package:iconsax/iconsax.dart';
 import '../../utils/constants.dart';
 
 class LicenseScreen extends StatelessWidget {
-  const LicenseScreen({Key? key}) : super(key: key);
-
+  const LicenseScreen({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(

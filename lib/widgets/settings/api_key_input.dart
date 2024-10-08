@@ -6,11 +6,11 @@ class ApiKeyInput extends StatelessWidget {
   final IconData icon;
 
   const ApiKeyInput({
-    Key? key,
+    super.key,
     required this.label,
     required this.controller,
     required this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

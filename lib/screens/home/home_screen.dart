@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
-import 'package:Freelexity/screens/search/search_screen.dart';
-import 'package:Freelexity/screens/library/library_screen.dart';
-import 'package:Freelexity/screens/settings/settings_screen.dart';
-import 'package:Freelexity/theme_provider.dart';
-import 'package:flutter/services.dart';
+import '../../screens/search/search_screen.dart';
+import '../../screens/library/library_screen.dart';
+import '../../screens/settings/settings_screen.dart';
+import '../../theme_provider.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   HomeScreenState createState() => HomeScreenState();
@@ -55,15 +54,5 @@ class HomeScreenState extends State<HomeScreen> {
         unselectedItemColor: Colors.grey,
       ),
     );
-  }
-
-  void _shareApp() {
-    const String shareText =
-        "Try Freelexity:\nhttps://www.github.com/TheGuyDangerous/Freelexity";
-    Clipboard.setData(ClipboardData(text: shareText)).then((_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('App link copied to clipboard')),
-      );
-    });
   }
 }

@@ -8,10 +8,10 @@ import 'package:provider/provider.dart';
 class ThreadLoadingScreen extends StatefulWidget {
   final String query;
 
-  const ThreadLoadingScreen({Key? key, required this.query}) : super(key: key);
+  const ThreadLoadingScreen({super.key, required this.query});
 
   @override
-  _ThreadLoadingScreenState createState() => _ThreadLoadingScreenState();
+  State<ThreadLoadingScreen> createState() => _ThreadLoadingScreenState();
 }
 
 class _ThreadLoadingScreenState extends State<ThreadLoadingScreen> {
@@ -45,7 +45,6 @@ class _ThreadLoadingScreenState extends State<ThreadLoadingScreen> {
           ),
         );
       } else {
-        // If results are null, navigate back to the previous screen
         Navigator.of(context).pop();
       }
     }

@@ -6,8 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 class SourcesSection extends StatelessWidget {
   final List<Map<String, dynamic>> searchResults;
 
-  const SourcesSection({Key? key, required this.searchResults})
-      : super(key: key);
+  const SourcesSection({super.key, required this.searchResults});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +29,7 @@ class SourcesSection extends StatelessWidget {
               decoration: BoxDecoration(
                 color: themeProvider.isDarkMode
                     ? Colors.grey[800]
-                    : Colors.grey[300], // Slightly darker grey for light mode
+                    : Colors.grey[300],
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -184,7 +183,6 @@ class SourcesSection extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: ElevatedButton(
             onPressed: () => _launchURL(result['url']),
-            child: Text('Visit Website'),
             style: ElevatedButton.styleFrom(
               backgroundColor: themeProvider.isDarkMode
                   ? Colors.grey[800]
@@ -192,6 +190,7 @@ class SourcesSection extends StatelessWidget {
               foregroundColor:
                   themeProvider.isDarkMode ? Colors.white : Colors.black,
             ),
+            child: Text('View Source'),
           ),
         ),
       ],
@@ -222,10 +221,10 @@ class SourcesSection extends StatelessWidget {
   }
 
   Future<void> _launchURL(String? url) async {
-    if (url != null && await canLaunch(url)) {
-      await launch(url);
+    if (url != null && await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
     } else {
-      print('Could not launch $url');
+      debugPrint('Could not launch $url');
     }
   }
 }

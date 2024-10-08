@@ -7,7 +7,7 @@ import 'full_screen_image.dart';
 class ImageSection extends StatelessWidget {
   final List<Map<String, String?>> images;
 
-  const ImageSection({Key? key, required this.images}) : super(key: key);
+  const ImageSection({super.key, required this.images});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +17,7 @@ class ImageSection extends StatelessWidget {
       return SizedBox.shrink();
     }
 
-    return Container(
+    return SizedBox(
       height: 200,
       child: Row(
         children: [
@@ -68,7 +68,7 @@ class ImageSection extends StatelessWidget {
           imageData['url'] ?? '',
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
-            print('Error loading image: $error');
+            debugPrint('Error loading image: $error');
             return _buildPlaceholder(themeProvider);
           },
           loadingBuilder: (context, child, loadingProgress) {

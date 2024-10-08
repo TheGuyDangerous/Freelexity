@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../../theme_provider.dart';
 
 class EmptyState extends StatelessWidget {
+  const EmptyState({super.key});
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);

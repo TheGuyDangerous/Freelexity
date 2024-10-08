@@ -11,13 +11,13 @@ class CustomSearchBar extends StatelessWidget {
   final VoidCallback onListenPressed;
 
   const CustomSearchBar({
-    Key? key,
+    super.key,
     required this.controller,
     required this.isListening,
     required this.useWhisperModel,
     required this.onSubmitted,
     required this.onListenPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

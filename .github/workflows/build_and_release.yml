@@ -76,7 +76,7 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-        asset_name: Freelexity v0.${{ github.run_number }}-arm64-v8a.apk
+        asset_name: Freelexity-v0.${{ github.run_number }}-arm64-v8a.apk
         asset_content_type: application/vnd.android.package-archive
 
     - name: Upload x86 APK

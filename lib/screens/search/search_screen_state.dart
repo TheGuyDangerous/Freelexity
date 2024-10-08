@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:record/record.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
-import '../../services/search_service.dart';
 import '../../services/whisper_service.dart';
 import '../../utils/audio_helpers.dart';
 import '../../utils/clipboard_helper.dart';
@@ -19,7 +18,6 @@ import '../../screens/thread/thread_loading_screen.dart';
 
 class SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final SearchService _searchService = SearchService();
   final WhisperService _whisperService = WhisperService();
   late stt.SpeechToText _speech;
   late FlutterTts _flutterTts;
@@ -68,10 +66,7 @@ class SearchScreenState extends State<SearchScreen> {
 
       await _audioRecorder.start(RecordConfig(), path: _recordingPath!);
     } else {
-      bool available = await _speech.initialize(
-        onStatus: (status) => print('onStatus: $status'),
-        onError: (errorNotification) => print('onError: $errorNotification'),
-      );
+      bool available = await _speech.initialize();
       if (available) {
         _speech.listen(
           onResult: (result) => setState(() {
@@ -98,7 +93,7 @@ class SearchScreenState extends State<SearchScreen> {
           });
           _performSearch();
         } catch (e) {
-          print('Error transcribing audio: $e');
+          debugPrint('Error transcribing audio: $e');
         }
 
         await file.delete();

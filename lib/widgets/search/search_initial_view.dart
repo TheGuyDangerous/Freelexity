@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../theme_provider.dart';
 
 class SearchInitialView extends StatelessWidget {
-  const SearchInitialView({Key? key}) : super(key: key);
+  const SearchInitialView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +14,7 @@ class SearchInitialView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
+          SizedBox(
             width: 350,
             height: 200,
             child: AnimatedSwitcher(
@@ -27,8 +27,7 @@ class SearchInitialView extends StatelessWidget {
                 fit: BoxFit.contain,
                 repeat: true,
                 animate: true,
-                frameRate:
-                    FrameRate(120), // This slows down the animation to 0.5x
+                frameRate: FrameRate(120),
               ),
             ),
           ),

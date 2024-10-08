@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:provider/provider.dart';
-import '../../theme_provider.dart';
 
 class FollowUpInput extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onSubmitted;
 
   const FollowUpInput({
-    Key? key,
+    super.key,
     required this.controller,
     required this.onSubmitted,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +18,7 @@ class FollowUpInput extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark
             ? Colors.grey[900]
-            : Colors.grey[300], // Slightly darker grey for light mode
+            : Colors.grey[300],
         borderRadius: BorderRadius.circular(30),
       ),
       child: Row(

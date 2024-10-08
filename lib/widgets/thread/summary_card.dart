@@ -9,20 +9,18 @@ class SummaryCard extends StatelessWidget {
   final bool isSpeaking;
 
   const SummaryCard({
-    Key? key,
+    super.key,
     required this.summary,
     required this.onSpeakPressed,
     required this.isSpeaking,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Card(
-      color: themeProvider.isDarkMode
-          ? Colors.grey[900]
-          : Colors.grey[300], // Slightly darker grey for light mode
+      color: themeProvider.isDarkMode ? Colors.grey[900] : Colors.grey[300],
       margin: EdgeInsets.all(16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(

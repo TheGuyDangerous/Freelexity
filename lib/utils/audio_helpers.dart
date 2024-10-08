@@ -1,13 +1,11 @@
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:flutter/material.dart';
 
 Future<void> initializeSpeech(stt.SpeechToText speech) async {
-  bool available = await speech.initialize(
-    onStatus: (status) => print('onStatus: $status'),
-    onError: (errorNotification) => print('onError: $errorNotification'),
-  );
+  bool available = await speech.initialize();
   if (!available) {
-    print("The user has denied the use of speech recognition.");
+    debugPrint("The user has denied the use of speech recognition.");
   }
 }
 

@@ -9,11 +9,8 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:provider/provider.dart';
 import '../../theme_provider.dart';
 import 'library_screen.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:iconsax/iconsax.dart';
 
-const int MAX_HISTORY_ITEMS = 50;
+const int maxHistoryItems = 50;
 
 class LibraryScreenState extends State<LibraryScreen> {
   List<Map<String, dynamic>> _searchHistory = [];
@@ -112,8 +109,8 @@ class LibraryScreenState extends State<LibraryScreen> {
 
   Future<void> _saveSearchHistory() async {
     final prefs = await SharedPreferences.getInstance();
-    if (_searchHistory.length > MAX_HISTORY_ITEMS) {
-      _searchHistory = _searchHistory.sublist(0, MAX_HISTORY_ITEMS);
+    if (_searchHistory.length > maxHistoryItems) {
+      _searchHistory = _searchHistory.sublist(0, maxHistoryItems);
     }
     final history = _searchHistory.map((item) => json.encode(item)).toList();
     await prefs.setStringList('search_history', history);
@@ -122,22 +119,6 @@ class LibraryScreenState extends State<LibraryScreen> {
   void _onRefresh() async {
     await _loadSearchHistory();
     _refreshController.refreshCompleted();
-  }
-
-  String _formatTimestamp(String timestamp) {
-    final date = DateTime.parse(timestamp);
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays == 0) {
-      return DateFormat.jm().format(date);
-    } else if (difference.inDays == 1) {
-      return 'Yesterday';
-    } else if (difference.inDays < 7) {
-      return DateFormat.E().format(date);
-    } else {
-      return DateFormat.yMMMd().format(date);
-    }
   }
 
   @override

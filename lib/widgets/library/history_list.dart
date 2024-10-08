@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:intl/intl.dart';
 import '../../screens/thread/thread_loading_screen.dart';
 import '../../custom_page_route.dart';
+import '../../utils/date_formatter.dart';
 
 class HistoryList extends StatelessWidget {
   final List<Map<String, dynamic>> searchHistory;
@@ -11,12 +11,12 @@ class HistoryList extends StatelessWidget {
   final Function(String) onItemTap;
 
   const HistoryList({
-    Key? key,
+    super.key,
     required this.searchHistory,
     required this.onDeleteItem,
     required this.onClearAll,
     required this.onItemTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +47,6 @@ class HistoryList extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       child: ElevatedButton(
         onPressed: onClearAll,
-        child: Text('Clear All History'),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.grey[800],
           foregroundColor: Colors.white,
@@ -55,6 +54,7 @@ class HistoryList extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
         ),
+        child: Text('Clear All History'),
       ),
     );
   }
@@ -142,15 +142,20 @@ class HistoryList extends StatelessWidget {
                 ),
                 SizedBox(height: 8),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    Text(
+                      formatTimestamp(item['timestamp']),
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
                     IconButton(
                       icon:
                           Icon(Iconsax.trash, color: Colors.white70, size: 20),
                       onPressed: () => onDeleteItem(index),
                     ),
-                    Icon(Iconsax.arrow_right_3,
-                        color: Colors.white70, size: 20),
                   ],
                 ),
               ],
@@ -161,23 +166,7 @@ class HistoryList extends StatelessWidget {
     );
   }
 
-  String _formatTimestamp(String timestamp) {
-    final date = DateTime.parse(timestamp);
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays == 0) {
-      return DateFormat.jm().format(date);
-    } else if (difference.inDays == 1) {
-      return 'Yesterday';
-    } else if (difference.inDays < 7) {
-      return DateFormat.E().format(date);
-    } else {
-      return DateFormat.yMMMd().format(date);
-    }
-  }
-
   String _truncateSummary(String summary) {
-    return summary.length > 100 ? summary.substring(0, 100) + '...' : summary;
+    return summary.length > 100 ? '${summary.substring(0, 100)}...' : summary;
   }
 }

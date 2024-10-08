@@ -20,7 +20,6 @@ class SettingsScreenState extends State<SettingsScreen> {
   bool _useWhisperModel = false;
   bool _isBraveApiKeyValid = false;
   bool _isGroqApiKeyValid = false;
-  bool _isDarkMode = true;
   bool _isValidating = false;
 
   final SearchService _searchService = SearchService();
@@ -30,7 +29,6 @@ class SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _loadSettings();
-    _loadDarkModeSetting();
   }
 
   Future<void> _loadSettings() async {
@@ -43,13 +41,6 @@ class SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-  Future<void> _loadDarkModeSetting() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _isDarkMode = prefs.getBool('isDarkMode') ?? true;
-    });
-  }
-
   Future<void> _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('braveApiKey', _braveApiController.text);
@@ -57,11 +48,6 @@ class SettingsScreenState extends State<SettingsScreen> {
     await prefs.setBool('incognitoMode', _isIncognitoMode);
     await prefs.setBool('useWhisperModel', _useWhisperModel);
     Fluttertoast.showToast(msg: "Settings saved successfully");
-  }
-
-  Future<void> _saveDarkModeSetting() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isDarkMode', _isDarkMode);
   }
 
   void _showWhisperInfoDialog() {
@@ -224,6 +210,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                 SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _isValidating ? null : _validateApiKeys,
+                  // ignore: sort_child_properties_last
                   child: _isValidating
                       ? SizedBox(
                           width: 24,

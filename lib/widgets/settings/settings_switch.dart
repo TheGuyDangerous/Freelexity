@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../theme_provider.dart';
 
 class SettingsSwitch extends StatelessWidget {
   final String title;
@@ -10,14 +9,14 @@ class SettingsSwitch extends StatelessWidget {
   final bool isDarkMode;
 
   const SettingsSwitch({
-    Key? key,
+    super.key,
     required this.title,
     required this.subtitle,
     required this.value,
     required this.onChanged,
     this.trailing,
     required this.isDarkMode,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

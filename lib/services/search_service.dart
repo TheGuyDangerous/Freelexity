@@ -5,7 +5,6 @@ import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/web_scraper_service.dart';
 import '../services/groq_api_service.dart';
-import '../screens/thread/thread_screen.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class SearchService {
@@ -49,7 +48,7 @@ class SearchService {
               result['scrapedContent'] = _preprocessContent(scrapedContent);
               return result;
             } catch (e) {
-              print('Error processing content for ${result['url']}: $e');
+              debugPrint('Error processing content for ${result['url']}: $e');
               return result;
             }
           }),
@@ -99,22 +98,6 @@ class SearchService {
         fontSize: 16.0);
   }
 
-  void _showErrorDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Error'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _handleApiError(BuildContext context, String message) {
     Navigator.of(context).pop(); // Remove loading screen
     Fluttertoast.showToast(
@@ -136,7 +119,7 @@ class SearchService {
       );
       return response.statusCode == 200;
     } catch (e) {
-      print('Error validating Brave API key: $e');
+      debugPrint('Error validating Brave API key: $e');
       return false;
     }
   }
