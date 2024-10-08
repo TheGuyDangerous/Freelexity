@@ -10,6 +10,8 @@ jobs:
   version-bump:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    outputs:
+      new_version: ${{ steps.bump_version.outputs.new_version }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -97,7 +99,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
       with:
         tag_name: v${{ needs.version-bump.outputs.new_version }}
-        release_name: Release ${{ needs.version-bump.outputs.new_version }}
+        release_name: Release v${{ needs.version-bump.outputs.new_version }}
         draft: false
         prerelease: ${{ github.ref == 'refs/heads/dev' }}
 
@@ -121,7 +123,7 @@ jobs:
         asset_name: Freelexity-v${{ needs.version-bump.outputs.new_version }}-arm64-v8a.apk
         asset_content_type: application/vnd.android.package-archive
 
-    - name: Upload x86 APK
+    - name: Upload x86_64 APK
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
