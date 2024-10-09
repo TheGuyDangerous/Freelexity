@@ -49,7 +49,7 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
       body: Center(
         child: Lottie.asset(
-          'assets/splash-light.json',
+          'assets/animations/splash-light.json',
           controller: _controller,
           fit: BoxFit.contain,
         ),

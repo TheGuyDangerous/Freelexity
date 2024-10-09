@@ -1,4 +1,4 @@
-name: Flutter Build and Release
+name: Flutter CI/CD
 
 on:
   push:
@@ -7,84 +7,129 @@ on:
     branches: [ main, dev ]
 
 jobs:
-  build_and_release:
+  version-bump-build-and-release:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup Java
-      uses: actions/setup-java@v3
-      with:
-        distribution: 'zulu'
-        java-version: '17'
-    
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.24.3'
-        channel: 'stable'
-    
-    - name: Cache Gradle packages
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
-    
-    - name: Cache Pub dependencies
-      uses: actions/cache@v3
-      with:
-        path: ${{ env.FLUTTER_HOME }}/.pub-cache
-        key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-pub-
-    
-    - name: Get dependencies
-      run: flutter pub get
-    
-    - name: Build APK
-      run: flutter build apk --release --split-per-abi
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Get latest tag
+        id: get_latest_tag
+        run: echo "latest_tag=$(git describe --tags --abbrev=0 || echo v0.0.0)" >> $GITHUB_OUTPUT
+      
+      - name: Bump version
+        id: bump_version
+        run: |
+          latest_tag=${{ steps.get_latest_tag.outputs.latest_tag }}
+          major=$(echo $latest_tag | cut -d. -f1 | tr -d v)
+          minor=$(echo $latest_tag | cut -d. -f2)
+          patch=$(echo $latest_tag | cut -d. -f3)
+          new_patch=$((patch + 1))
+          new_version="$major.$minor.$new_patch"
+          echo "new_version=$new_version" >> $GITHUB_OUTPUT
+      
+      - name: Update pubspec.yaml
+        run: |
+          sed -i 's/^version: .*/version: ${{ steps.bump_version.outputs.new_version }}+${{ github.run_number }}/g' pubspec.yaml
+      
+      - name: Commit changes
+        run: |
+          git config --local user.email "sannidhyadubey@gmail.com"
+          git config --local user.name "TheGuyDangerous"
+          git add pubspec.yaml
+          git commit -m "Bump version to ${{ steps.bump_version.outputs.new_version }}+${{ github.run_number }}"
+      
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
-      with:
-        tag_name: v0.${{ github.run_number }}
-        release_name: Release 0.${{ github.run_number }}
-        draft: false
-        prerelease: ${{ github.ref == 'refs/heads/dev' }}
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.3'
+          channel: 'stable'
+      
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      
+      - name: Cache Pub dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.FLUTTER_HOME }}/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+      
+      - name: Get dependencies
+        run: flutter pub get
+      
+      - name: Build APK
+        run: flutter build apk --release --split-per-abi
 
-    - name: Upload armeabi-v7a APK
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
-        asset_name: freelexity-v0.${{ github.run_number }}-armeabi-v7a.apk
-        asset_content_type: application/vnd.android.package-archive
+      - name: Upload APKs as artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: apks
+          path: build/app/outputs/flutter-apk/*.apk
 
-    - name: Upload arm64-v8a APK
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-        asset_name: Freelexity-v0.${{ github.run_number }}-arm64-v8a.apk
-        asset_content_type: application/vnd.android.package-archive
+      - name: Create Release
+        if: github.ref == 'refs/heads/main'
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          tag_name: v${{ steps.bump_version.outputs.new_version }}
+          release_name: Release ${{ steps.bump_version.outputs.new_version }}
+          draft: false
+          prerelease: false
 
-    - name: Upload x86 APK
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./build/app/outputs/flutter-apk/app-x86_64-release.apk
-        asset_name: freelexity-v0.${{ github.run_number }}-x86_64.apk
-        asset_content_type: application/vnd.android.package-archive
+      - name: Upload armeabi-v7a APK
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+          asset_name: freelexity-v${{ steps.bump_version.outputs.new_version }}-armeabi-v7a.apk
+          asset_content_type: application/vnd.android.package-archive
+
+      - name: Upload arm64-v8a APK
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          asset_name: Freelexity-v${{ steps.bump_version.outputs.new_version }}-arm64-v8a.apk
+          asset_content_type: application/vnd.android.package-archive
+
+      - name: Upload x86 APK
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/app/outputs/flutter-apk/app-x86_64-release.apk
+          asset_name: freelexity-v${{ steps.bump_version.outputs.new_version }}-x86_64.apk
+          asset_content_type: application/vnd.android.package-archive

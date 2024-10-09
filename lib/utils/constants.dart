@@ -11,4 +11,6 @@ class AppConstants {
     final packageInfo = await PackageInfo.fromPlatform();
     appVersion = packageInfo.version;
   }
+
+  static const String kFirstLaunchKey = 'first_launch';
 }

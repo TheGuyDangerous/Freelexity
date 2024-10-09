@@ -22,8 +22,8 @@ class SearchInitialView extends StatelessWidget {
               child: Lottie.asset(
                 key: ValueKey<bool>(themeProvider.isDarkMode),
                 themeProvider.isDarkMode
-                    ? 'assets/freelexity-lightgrey.json'
-                    : 'assets/freelexity-lightgrey.json',
+                    ? 'assets/animations/freelexity-lightgrey.json'
+                    : 'assets/animations/freelexity-lightgrey.json',
                 fit: BoxFit.contain,
                 repeat: true,
                 animate: true,
