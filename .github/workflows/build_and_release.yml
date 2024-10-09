@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       
@@ -48,7 +48,7 @@ jobs:
           branch: ${{ github.ref }}
 
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
@@ -72,19 +72,24 @@ jobs:
       - name: Cache Pub dependencies
         uses: actions/cache@v3
         with:
-          path: ${{ env.FLUTTER_HOME }}/.pub-cache
+          path: ${{ env.PUB_CACHE }}
           key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             ${{ runner.os }}-pub-
       
       - name: Get dependencies
         run: flutter pub get
+
+      - name: Debug Pub Cache
+        run: |
+          echo "PUB_CACHE: $PUB_CACHE"
+          ls -R $PUB_CACHE || echo "PUB_CACHE directory not found"
       
       - name: Build APK
         run: flutter build apk --release --split-per-abi
 
       - name: Upload APKs as artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: apks
           path: build/app/outputs/flutter-apk/*.apk
@@ -133,3 +138,19 @@ jobs:
           asset_path: ./build/app/outputs/flutter-apk/app-x86_64-release.apk
           asset_name: freelexity-v${{ steps.bump_version.outputs.new_version }}-x86_64.apk
           asset_content_type: application/vnd.android.package-archive
+
+      - name: Upload Dev APKs as artifacts
+        if: github.ref == 'refs/heads/dev'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-apks
+          path: build/app/outputs/flutter-apk/*.apk
+          retention-days: 5
+
+      - name: Final Debug
+        if: always()
+        run: |
+          echo "Gradle cache:"
+          ls -R ~/.gradle/caches || echo "Gradle cache not found"
+          echo "Pub cache:"
+          ls -R $PUB_CACHE || echo "Pub cache not found"

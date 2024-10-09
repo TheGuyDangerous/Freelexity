@@ -2,98 +2,221 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../theme_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:iconsax/iconsax.dart';
 
-class SourcesSection extends StatelessWidget {
+class SourcesSection extends StatefulWidget {
   final List<Map<String, dynamic>> searchResults;
 
   const SourcesSection({super.key, required this.searchResults});
 
   @override
+  _SourcesSectionState createState() => _SourcesSectionState();
+}
+
+class _SourcesSectionState extends State<SourcesSection> {
+  bool _isExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
-    return Container(
-      height: 80,
-      margin: EdgeInsets.symmetric(vertical: 16),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: searchResults.length,
-        itemBuilder: (context, index) {
-          final result = searchResults[index];
-          return GestureDetector(
-            onTap: () => _showSourceDetails(context, result, themeProvider),
-            child: Container(
-              width: 200,
-              margin: EdgeInsets.only(right: 8, left: index == 0 ? 16 : 0),
-              padding: EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: themeProvider.isDarkMode
-                    ? Colors.grey[800]
-                    : Colors.grey[300],
-                borderRadius: BorderRadius.circular(12),
-              ),
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _isExpanded = !_isExpanded;
+        });
+      },
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 300),
+        height: _isExpanded ? null : 80,
+        margin: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        decoration: BoxDecoration(
+          color: themeProvider.isDarkMode
+              ? Colors.grey[800]!.withOpacity(0.5)
+              : Colors.grey[300]!.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Container(
+              height: 80,
+              padding: EdgeInsets.symmetric(horizontal: 16),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: themeProvider.isDarkMode
-                          ? Colors.white
-                          : Colors.black,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${index + 1}',
+                  Row(
+                    children: [
+                      Icon(
+                        Iconsax.document,
+                        color: themeProvider.isDarkMode
+                            ? Colors.white
+                            : Colors.black,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Sources',
                         style: TextStyle(
                           color: themeProvider.isDarkMode
-                              ? Colors.black
-                              : Colors.white,
+                              ? Colors.white
+                              : Colors.black,
                           fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                          fontSize: 16,
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          result['title'] ?? '',
-                          style: TextStyle(
-                            color: themeProvider.isDarkMode
-                                ? Colors.white
-                                : Colors.black,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          Uri.parse(result['url'] ?? '').host,
-                          style: TextStyle(
-                              color: themeProvider.isDarkMode
-                                  ? Colors.white70
-                                  : Colors.black54,
-                              fontSize: 12),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
+                  Row(
+                    children: [
+                      _buildFaviconStack(),
+                      SizedBox(width: 8),
+                      Icon(
+                        _isExpanded
+                            ? Icons.arrow_drop_up
+                            : Icons.arrow_drop_down,
+                        color: themeProvider.isDarkMode
+                            ? Colors.white
+                            : Colors.black,
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-          );
-        },
+            if (_isExpanded)
+              Container(
+                height: 80,
+                child: ScrollConfiguration(
+                  behavior: BouncyScrollBehavior(),
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: widget.searchResults.length,
+                    itemBuilder: (context, index) {
+                      final result = widget.searchResults[index];
+                      final isLastItem =
+                          index == widget.searchResults.length - 1;
+                      return GestureDetector(
+                        onTap: () =>
+                            _showSourceDetails(context, result, themeProvider),
+                        child: Container(
+                          width: 200,
+                          margin: EdgeInsets.only(
+                            left: index == 0 ? 16 : 8,
+                            right: isLastItem ? 10 : 2,
+                            bottom: 16,
+                          ),
+                          padding: EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: themeProvider.isDarkMode
+                                ? Colors.grey[700]
+                                : Colors.grey[200],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              _buildFavicon(result['url']),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      result['title'] ?? '',
+                                      style: TextStyle(
+                                        color: themeProvider.isDarkMode
+                                            ? Colors.white
+                                            : Colors.black,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      Uri.parse(result['url'] ?? '').host,
+                                      style: TextStyle(
+                                        color: themeProvider.isDarkMode
+                                            ? Colors.white70
+                                            : Colors.black54,
+                                        fontSize: 12,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildFavicon(String? url) {
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+        border: Border.all(color: Colors.grey[300]!, width: 1),
+      ),
+      child: ClipOval(
+        child: Image.network(
+          'https://www.google.com/s2/favicons?domain=${Uri.parse(url ?? '').host}&sz=64',
+          width: 16,
+          height: 16,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Icon(Icons.public, size: 16);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFaviconStack() {
+    List<Widget> favicons = [];
+    for (int i = 0; i < widget.searchResults.length && i < 2; i++) {
+      favicons.add(
+        Positioned(
+          left: i * 15.0,
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(color: Colors.grey[300]!, width: 1),
+            ),
+            child: ClipOval(
+              child: Image.network(
+                'https://www.google.com/s2/favicons?domain=${Uri.parse(widget.searchResults[i]['url'] ?? '').host}&sz=64',
+                width: 16,
+                height: 16,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(Icons.public, size: 16);
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    return Container(
+      width: 40,
+      height: 24,
+      child: Stack(children: favicons),
     );
   }
 
@@ -226,5 +349,12 @@ class SourcesSection extends StatelessWidget {
     } else {
       debugPrint('Could not launch $url');
     }
+  }
+}
+
+class BouncyScrollBehavior extends ScrollBehavior {
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return BouncingScrollPhysics();
   }
 }
