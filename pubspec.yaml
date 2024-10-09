@@ -3,7 +3,7 @@ description: "An open-source answer engine built with Flutter."
 
 publish_to: 'none'
 
-version: 0.22.1+1
+version: 0.28.1+30
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -16,9 +16,9 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter_slidable: ^3.1.1
   http: ^1.2.2
-  shared_preferences: ^2.0.15
+  shared_preferences: ^2.0.12
   provider: ^6.0.3
-  lottie: ^3.1.2
+  lottie: ^2.3.2
   iconsax: ^0.0.8
   speech_to_text: ^7.0.0
   flutter_tts: ^4.0.2
@@ -35,7 +35,7 @@ dependencies:
   flutter_launcher_icons: ^0.14.1
   yaml: ^3.1.0
   package_info_plus: ^4.0.0
-
+  liquid_swipe: ^3.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -66,3 +66,4 @@ flutter:
 
   assets:
     - assets/
+    - assets/animations/
