@@ -31,14 +31,27 @@ class SummaryCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Answer',
-                  style: TextStyle(
-                    color:
-                        themeProvider.isDarkMode ? Colors.white : Colors.black,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  children: [
+                    Icon(
+                      Iconsax.magic_star,
+                      color: themeProvider.isDarkMode
+                          ? Colors.white
+                          : Colors.black,
+                      size: 24,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Answer',
+                      style: TextStyle(
+                        color: themeProvider.isDarkMode
+                            ? Colors.white
+                            : Colors.black,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
                 IconButton(
                   icon: Icon(
@@ -55,8 +68,9 @@ class SummaryCard extends StatelessWidget {
             Text(
               summary,
               style: TextStyle(
-                  color: themeProvider.isDarkMode ? Colors.white : Colors.black,
-                  fontSize: 16),
+                color: themeProvider.isDarkMode ? Colors.white : Colors.black,
+                fontSize: 16,
+              ),
             ),
           ],
         ),

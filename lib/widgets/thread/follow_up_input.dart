@@ -3,7 +3,7 @@ import 'package:iconsax/iconsax.dart';
 
 class FollowUpInput extends StatelessWidget {
   final TextEditingController controller;
-  final VoidCallback onSubmitted;
+  final Function(String) onSubmitted;
 
   const FollowUpInput({
     super.key,
@@ -40,7 +40,7 @@ class FollowUpInput extends StatelessWidget {
                 ),
                 border: InputBorder.none,
               ),
-              onSubmitted: (_) => onSubmitted(),
+              onSubmitted: (_) => onSubmitted(controller.text),
             ),
           ),
           IconButton(
@@ -50,7 +50,7 @@ class FollowUpInput extends StatelessWidget {
                   ? Colors.white
                   : Colors.black,
             ),
-            onPressed: onSubmitted,
+            onPressed: () => onSubmitted(controller.text),
           ),
         ],
       ),
