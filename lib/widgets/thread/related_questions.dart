@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import '../../theme_provider.dart';
-import '../../screens/thread/thread_loading_screen.dart';
 
 class RelatedQuestions extends StatelessWidget {
   final List<String> questions;
+  final Function(String) onQuestionSelected;
 
-  const RelatedQuestions({super.key, required this.questions});
+  const RelatedQuestions({
+    super.key,
+    required this.questions,
+    required this.onQuestionSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -59,14 +63,7 @@ class RelatedQuestions extends StatelessWidget {
               ),
               contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               dense: true,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        ThreadLoadingScreen(query: questions[index]),
-                  ),
-                );
-              },
+              onTap: () => onQuestionSelected(questions[index]),
             );
           },
         ),

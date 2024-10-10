@@ -21,12 +21,12 @@ class ThreadScreenState extends State<ThreadScreen>
   late AnimationController _animationController;
   late Animation<double> _animation;
   final TextEditingController _followUpController = TextEditingController();
-  List<String> _relatedQuestions = [];
-  List<Map<String, String?>> _images = []; // Change the type here
+  final List<ThreadSection> _threadSections = [];
   bool _isIncognitoMode = false;
   bool _isSpeaking = false;
   late FlutterTts _flutterTts;
-  final bool _isLoading = false;
+  bool _isLoading = false;
+  final SearchService _searchService = SearchService();
 
   @override
   void initState() {
@@ -35,6 +35,7 @@ class ThreadScreenState extends State<ThreadScreen>
     _loadIncognitoMode();
     _loadData();
     _initializeTts();
+    _addInitialSection();
   }
 
   void _initializeAnimation() {
@@ -82,7 +83,7 @@ class ThreadScreenState extends State<ThreadScreen>
     ]);
   }
 
-  Future<void> _fetchRelatedQuestions() async {
+  Future<void> _fetchRelatedQuestions([String? query, String? summary]) async {
     final prefs = await SharedPreferences.getInstance();
     final groqApiKey = prefs.getString('groqApiKey') ?? '';
 
@@ -111,7 +112,7 @@ class ThreadScreenState extends State<ThreadScreen>
             {
               'role': 'user',
               'content':
-                  'Query: ${widget.query}\n\nSummary: ${widget.summary}\n\nGenerate 4 short, related questions:'
+                  'Query: ${query ?? widget.query}\n\nSummary: ${summary ?? widget.summary}\n\nGenerate 4 short, related questions:'
             },
           ],
           'max_tokens': 150,
@@ -125,7 +126,7 @@ class ThreadScreenState extends State<ThreadScreen>
         final questions =
             content.split('\n').where((q) => q.trim().isNotEmpty).toList();
         setState(() {
-          _relatedQuestions = questions
+          _threadSections.last.relatedQuestions = questions
               .map((q) => q.replaceAll(RegExp(r'^\d+\.\s*'), ''))
               .toList();
         });
@@ -137,7 +138,7 @@ class ThreadScreenState extends State<ThreadScreen>
     }
   }
 
-  Future<void> _fetchImages() async {
+  Future<void> _fetchImages([String? query]) async {
     final prefs = await SharedPreferences.getInstance();
     final braveApiKey = prefs.getString('braveApiKey') ?? '';
 
@@ -147,7 +148,7 @@ class ThreadScreenState extends State<ThreadScreen>
     }
 
     final url = Uri.parse(
-        'https://api.search.brave.com/res/v1/images/search?q=${Uri.encodeComponent(widget.query)}&count=5');
+        'https://api.search.brave.com/res/v1/images/search?q=${Uri.encodeComponent(query ?? widget.query)}&count=5');
 
     try {
       final response = await http.get(
@@ -159,11 +160,10 @@ class ThreadScreenState extends State<ThreadScreen>
         final data = json.decode(response.body);
         final results = List<Map<String, dynamic>>.from(data['results']);
         setState(() {
-          _images = results
+          _threadSections.last.images = results
               .map((result) {
                 final imageUrl = result['thumbnail']['src'] as String?;
-                debugPrint(
-                    'Image URL: $imageUrl'); // Add this line for debugging
+                debugPrint('Image URL: $imageUrl');
                 return {
                   'url': imageUrl,
                   'websiteName': result['source'] as String? ?? 'Unknown',
@@ -177,13 +177,13 @@ class ThreadScreenState extends State<ThreadScreen>
       } else {
         debugPrint('Failed to fetch images: ${response.statusCode}');
         setState(() {
-          _images = [];
+          _threadSections.last.images = [];
         });
       }
     } catch (e) {
       debugPrint('Error fetching images: $e');
       setState(() {
-        _images = [];
+        _threadSections.last.images = [];
       });
     }
   }
@@ -201,22 +201,6 @@ class ThreadScreenState extends State<ThreadScreen>
     }
   }
 
-  void _performFollowUp() {
-    if (_followUpController.text.trim().isNotEmpty) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => ThreadScreen(
-            query: _followUpController.text,
-            searchResults: [],
-            summary: '',
-          ),
-        ),
-      );
-      SearchService().performSearch(context, _followUpController.text);
-      _followUpController.clear();
-    }
-  }
-
   void _shareSearchResult() {
     final String shareText =
         'Query: ${widget.query}\n\nAnswer: ${widget.summary}\n\nSearch with ${AppConstants.appName}: ${AppConstants.githubUrl}';
@@ -227,6 +211,44 @@ class ThreadScreenState extends State<ThreadScreen>
         );
       }
     });
+  }
+
+  void _addInitialSection() {
+    _threadSections.add(ThreadSection(
+      query: widget.query,
+      summary: widget.summary,
+      searchResults: widget.searchResults,
+    ));
+  }
+
+  void _addFollowUpSection(String question) {
+    setState(() {
+      _threadSections.add(ThreadSection(query: question));
+      _isLoading = true;
+    });
+    _performSearch(question);
+  }
+
+  Future<void> _performSearch(String query) async {
+    try {
+      final result = await _searchService.performSearch(context, query);
+      if (result != null) {
+        setState(() {
+          _threadSections.last.searchResults = result['searchResults'];
+          _threadSections.last.summary = result['summary'];
+          _isLoading = false;
+        });
+        await _fetchRelatedQuestions(query, result['summary']);
+        await _fetchImages(query);
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error performing search: $e');
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -276,48 +298,49 @@ class ThreadScreenState extends State<ThreadScreen>
             ),
             body: Stack(
               children: [
-                Column(
-                  children: [
-                    Expanded(
-                      child: CustomScrollView(
-                        slivers: [
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                              child: Text(
-                                widget.query,
-                                style: TextStyle(
-                                  fontFamily: 'Raleway',
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: themeProvider.isDarkMode
-                                      ? Colors.white
-                                      : Colors.black,
-                                ),
-                              ),
-                            ),
+                ScrollConfiguration(
+                  behavior: BouncyScrollBehavior(),
+                  child: ListView.builder(
+                    physics: BouncingScrollPhysics(),
+                    itemCount: _threadSections.length,
+                    itemBuilder: (context, index) {
+                      return Column(
+                        children: [
+                          ThreadSectionWidget(
+                            section: _threadSections[index],
+                            onFollowUpSelected: _addFollowUpSection,
+                            onSpeakPressed: _toggleSpeech,
+                            isSpeaking: _isSpeaking,
                           ),
-                          SliverToBoxAdapter(
-                              child: SourcesSection(
-                                  searchResults: widget.searchResults)),
-                          SliverToBoxAdapter(
-                              child: ImageSection(images: _images)),
-                          SliverToBoxAdapter(
-                              child: SummaryCard(
-                                  summary: widget.summary,
-                                  onSpeakPressed: _toggleSpeech,
-                                  isSpeaking: _isSpeaking)),
-                          SliverToBoxAdapter(
-                              child: RelatedQuestions(
-                                  questions: _relatedQuestions)),
+                          if (index < _threadSections.length - 1)
+                            Divider(
+                              color: themeProvider.isDarkMode
+                                  ? Colors.grey[800]
+                                  : Colors.grey[300],
+                              thickness: 1,
+                              height: 32,
+                            ),
+                          // Add bottom padding to the last item
+                          if (index == _threadSections.length - 1)
+                            SizedBox(height: 80), // Adjust this value as needed
                         ],
-                      ),
-                    ),
-                    FollowUpInput(
-                      controller: _followUpController,
-                      onSubmitted: _performFollowUp,
-                    ),
-                  ],
+                      );
+                    },
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: FollowUpInput(
+                    controller: _followUpController,
+                    onSubmitted: (String question) {
+                      if (question.isNotEmpty) {
+                        _addFollowUpSection(question);
+                        _followUpController.clear();
+                      }
+                    },
+                  ),
                 ),
                 if (_isLoading)
                   Container(
@@ -332,5 +355,77 @@ class ThreadScreenState extends State<ThreadScreen>
         );
       },
     );
+  }
+}
+
+class ThreadSection {
+  final String query;
+  String? summary;
+  List<Map<String, dynamic>>? searchResults;
+  List<String>? relatedQuestions;
+  List<Map<String, String?>>? images;
+
+  ThreadSection({
+    required this.query,
+    this.summary,
+    this.searchResults,
+    this.relatedQuestions,
+    this.images,
+  });
+}
+
+class ThreadSectionWidget extends StatelessWidget {
+  final ThreadSection section;
+  final Function(String) onFollowUpSelected;
+  final Function(String) onSpeakPressed;
+  final bool isSpeaking;
+
+  const ThreadSectionWidget({
+    Key? key,
+    required this.section,
+    required this.onFollowUpSelected,
+    required this.onSpeakPressed,
+    required this.isSpeaking,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Text(
+            section.query,
+            style: TextStyle(
+              fontFamily: 'Raleway',
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        if (section.searchResults != null)
+          SourcesSection(searchResults: section.searchResults!),
+        if (section.images != null) ImageSection(images: section.images!),
+        if (section.summary != null)
+          SummaryCard(
+            summary: section.summary!,
+            onSpeakPressed: onSpeakPressed,
+            isSpeaking: isSpeaking,
+          ),
+        if (section.relatedQuestions != null)
+          RelatedQuestions(
+            questions: section.relatedQuestions!,
+            onQuestionSelected: onFollowUpSelected,
+          ),
+      ],
+    );
+  }
+}
+
+class BouncyScrollBehavior extends ScrollBehavior {
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return BouncingScrollPhysics();
   }
 }
