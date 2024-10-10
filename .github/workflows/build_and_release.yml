@@ -93,14 +93,28 @@ jobs:
       - name: Build APK
         run: flutter build apk --release --split-per-abi
 
-      - name: Upload APKs as artifacts
+      - name: Upload armeabi-v7a APK
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
-          name: apks
-          path: |
-            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
-            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-            build/app/outputs/flutter-apk/app-x86_64-release.apk
+          name: app-armeabi-v7a-release
+          path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+          retention-days: 5
+
+      - name: Upload arm64-v8a APK
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-arm64-v8a-release
+          path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          retention-days: 5
+
+      - name: Upload x86_64 APK
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-x86_64-release
+          path: build/app/outputs/flutter-apk/app-x86_64-release.apk
           retention-days: 5
 
       - name: Create Release
@@ -155,3 +169,27 @@ jobs:
           ls -R ~/.gradle/caches || echo "Gradle cache not found"
           echo "Pub cache:"
           ls -R $PUB_CACHE || echo "Pub cache not found"
+
+      - name: Upload Dev APKs as artifacts
+        if: github.ref == 'refs/heads/dev'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-apk-armeabi-v7a
+          path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+          retention-days: 5
+
+      - name: Upload Dev APKs as artifacts
+        if: github.ref == 'refs/heads/dev'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-apk-arm64-v8a
+          path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          retention-days: 5
+
+      - name: Upload Dev APKs as artifacts
+        if: github.ref == 'refs/heads/dev'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-apk-x86_64
+          path: build/app/outputs/flutter-apk/app-x86_64-release.apk
+          retention-days: 5
