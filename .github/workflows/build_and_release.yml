@@ -7,7 +7,7 @@ on:
     branches: [ main, dev ]
 
 jobs:
-  version-bump-build-and-release:
+  build-and-release:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
     steps:
@@ -17,10 +17,12 @@ jobs:
       
       - name: Get latest tag
         id: get_latest_tag
+        if: github.ref == 'refs/heads/main'
         run: echo "latest_tag=$(git describe --tags --abbrev=0 || echo v0.0.0)" >> $GITHUB_OUTPUT
       
       - name: Bump version
         id: bump_version
+        if: github.ref == 'refs/heads/main'
         run: |
           latest_tag=${{ steps.get_latest_tag.outputs.latest_tag }}
           major=$(echo $latest_tag | cut -d. -f1 | tr -d v)
@@ -31,10 +33,12 @@ jobs:
           echo "new_version=$new_version" >> $GITHUB_OUTPUT
       
       - name: Update pubspec.yaml
+        if: github.ref == 'refs/heads/main'
         run: |
           sed -i 's/^version: .*/version: ${{ steps.bump_version.outputs.new_version }}+${{ github.run_number }}/g' pubspec.yaml
       
       - name: Commit changes
+        if: github.ref == 'refs/heads/main'
         run: |
           git config --local user.email "sannidhyadubey@gmail.com"
           git config --local user.name "TheGuyDangerous"
@@ -42,6 +46,7 @@ jobs:
           git commit -m "Bump version to ${{ steps.bump_version.outputs.new_version }}+${{ github.run_number }}"
       
       - name: Push changes
+        if: github.ref == 'refs/heads/main'
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
