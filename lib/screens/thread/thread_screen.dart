@@ -8,12 +8,12 @@ class ThreadScreen extends StatefulWidget {
   final List<dynamic>? savedSections;
 
   const ThreadScreen({
-    Key? key,
+    super.key,
     required this.query,
     required this.searchResults,
     required this.summary,
     this.savedSections,
-  }) : super(key: key);
+  });
 
   @override
   ThreadScreenState createState() => ThreadScreenState();

@@ -18,6 +18,22 @@ import '../../utils/constants.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
+class ThreadSection {
+  final String query;
+  String? summary;
+  List<Map<String, dynamic>>? searchResults;
+  List<String>? relatedQuestions;
+  List<Map<String, String?>>? images;
+
+  ThreadSection({
+    required this.query,
+    this.summary,
+    this.searchResults,
+    this.relatedQuestions,
+    this.images,
+  });
+}
+
 class ThreadScreenState extends State<ThreadScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
@@ -213,6 +229,11 @@ class ThreadScreenState extends State<ThreadScreen>
         'query': widget.query,
         'summary': widget.summary,
         'searchResults': widget.searchResults,
+        'images': _threadSections
+            .expand((section) => section.images ?? [])
+            .take(3)
+            .map((img) => Map<String, String?>.from(img))
+            .toList(),
         'sections': _threadSections
             .map((section) => {
                   'query': section.query,
@@ -243,6 +264,7 @@ class ThreadScreenState extends State<ThreadScreen>
         'path': file.path,
         'timestamp': DateTime.now().toIso8601String(),
         'isSaved': true,
+        'images': threadData['images'],
       });
 
       // Remove any existing entries with the same query from both lists
@@ -441,22 +463,6 @@ class ThreadScreenState extends State<ThreadScreen>
       },
     );
   }
-}
-
-class ThreadSection {
-  final String query;
-  String? summary;
-  List<Map<String, dynamic>>? searchResults;
-  List<String>? relatedQuestions;
-  List<Map<String, String?>>? images;
-
-  ThreadSection({
-    required this.query,
-    this.summary,
-    this.searchResults,
-    this.relatedQuestions,
-    this.images,
-  });
 }
 
 class ThreadSectionWidget extends StatelessWidget {

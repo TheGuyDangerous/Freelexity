@@ -94,7 +94,7 @@ jobs:
         run: flutter build apk --release --split-per-abi
 
       - name: Upload armeabi-v7a APK
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/dev'
         uses: actions/upload-artifact@v4
         with:
           name: app-armeabi-v7a-release
@@ -102,7 +102,7 @@ jobs:
           retention-days: 5
 
       - name: Upload arm64-v8a APK
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/dev'
         uses: actions/upload-artifact@v4
         with:
           name: app-arm64-v8a-release
@@ -110,7 +110,7 @@ jobs:
           retention-days: 5
 
       - name: Upload x86_64 APK
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/dev'
         uses: actions/upload-artifact@v4
         with:
           name: app-x86_64-release
@@ -137,7 +137,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
-          asset_name: freelexity-v${{ steps.bump_version.outputs.new_version }}-armeabi-v7a.apk
+          asset_name: Freelexity-v${{ steps.bump_version.outputs.new_version }}-armeabi-v7a.apk
           asset_content_type: application/vnd.android.package-archive
 
       - name: Upload arm64-v8a APK
@@ -159,7 +159,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./build/app/outputs/flutter-apk/app-x86_64-release.apk
-          asset_name: freelexity-v${{ steps.bump_version.outputs.new_version }}-x86_64.apk
+          asset_name: Freelexity-v${{ steps.bump_version.outputs.new_version }}-x86_64.apk
           asset_content_type: application/vnd.android.package-archive 
 
       - name: Final Debug
@@ -169,27 +169,3 @@ jobs:
           ls -R ~/.gradle/caches || echo "Gradle cache not found"
           echo "Pub cache:"
           ls -R $PUB_CACHE || echo "Pub cache not found"
-
-      - name: Upload Dev APKs as artifacts
-        if: github.ref == 'refs/heads/dev'
-        uses: actions/upload-artifact@v4
-        with:
-          name: dev-apk-armeabi-v7a
-          path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
-          retention-days: 5
-
-      - name: Upload Dev APKs as artifacts
-        if: github.ref == 'refs/heads/dev'
-        uses: actions/upload-artifact@v4
-        with:
-          name: dev-apk-arm64-v8a
-          path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-          retention-days: 5
-
-      - name: Upload Dev APKs as artifacts
-        if: github.ref == 'refs/heads/dev'
-        uses: actions/upload-artifact@v4
-        with:
-          name: dev-apk-x86_64
-          path: build/app/outputs/flutter-apk/app-x86_64-release.apk
-          retention-days: 5

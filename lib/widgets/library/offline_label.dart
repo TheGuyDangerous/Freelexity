@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import '';
 
 class OfflineLabel extends StatelessWidget {
-  const OfflineLabel({Key? key}) : super(key: key);
+  const OfflineLabel({super.key});
 
   @override
   Widget build(BuildContext context) {

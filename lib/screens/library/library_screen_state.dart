@@ -5,7 +5,6 @@ import 'dart:io';
 import '../../widgets/library/history_list.dart';
 import '../../widgets/library/empty_state.dart';
 import '../../widgets/library/incognito_message.dart';
-import '../../services/search_service.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:provider/provider.dart';
 import '../../theme_provider.dart';
@@ -17,7 +16,6 @@ const int maxHistoryItems = 50;
 
 class LibraryScreenState extends State<LibraryScreen> {
   List<Map<String, dynamic>> _searchHistory = [];
-  final SearchService _searchService = SearchService();
   bool _isIncognitoMode = false;
   final RefreshController _refreshController =
       RefreshController(initialRefresh: false);
