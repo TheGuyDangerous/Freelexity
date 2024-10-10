@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:io';
 import '../../widgets/library/history_list.dart';
 import '../../widgets/library/empty_state.dart';
 import '../../widgets/library/incognito_message.dart';
@@ -9,6 +10,8 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:provider/provider.dart';
 import '../../theme_provider.dart';
 import 'library_screen.dart';
+import '../thread/thread_screen.dart';
+import '../thread/thread_loading_screen.dart';
 
 const int maxHistoryItems = 50;
 
@@ -29,11 +32,52 @@ class LibraryScreenState extends State<LibraryScreen> {
     final prefs = await SharedPreferences.getInstance();
     _isIncognitoMode = prefs.getBool('incognitoMode') ?? false;
     if (!_isIncognitoMode) {
-      final history = prefs.getStringList('search_history') ?? [];
+      final savedThreads = prefs.getStringList('saved_threads') ?? [];
+      final searchHistory = prefs.getStringList('search_history') ?? [];
+      debugPrint('Loaded saved_threads from SharedPreferences: $savedThreads');
+      debugPrint(
+          'Loaded search_history from SharedPreferences: $searchHistory');
+
       setState(() {
-        _searchHistory = history
-            .map((item) => json.decode(item) as Map<String, dynamic>)
-            .toList();
+        _searchHistory = [
+          ...savedThreads.map((item) {
+            try {
+              final data = json.decode(item) as Map<String, dynamic>;
+              data['isSaved'] = true;
+              debugPrint('Loaded saved thread: $data');
+              return data;
+            } catch (e) {
+              debugPrint('Error decoding saved thread: $e');
+              return null;
+            }
+          }).whereType<Map<String, dynamic>>(),
+          ...searchHistory.map((item) {
+            try {
+              final data = json.decode(item) as Map<String, dynamic>;
+              data['isSaved'] = false;
+              debugPrint('Loaded search history item: $data');
+              return data;
+            } catch (e) {
+              debugPrint('Error decoding search history item: $e');
+              return null;
+            }
+          }).whereType<Map<String, dynamic>>(),
+        ];
+
+        // Remove duplicates based on query and timestamp
+        _searchHistory =
+            _searchHistory.fold<List<Map<String, dynamic>>>([], (list, item) {
+          if (!list.any((element) =>
+              element['query'] == item['query'] &&
+              element['timestamp'] == item['timestamp'])) {
+            list.add(item);
+          }
+          return list;
+        });
+
+        // Sort the combined list by timestamp
+        _searchHistory.sort((a, b) => DateTime.parse(b['timestamp'])
+            .compareTo(DateTime.parse(a['timestamp'])));
       });
     } else {
       setState(() {
@@ -42,69 +86,18 @@ class LibraryScreenState extends State<LibraryScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Library',
-            style:
-                TextStyle(fontFamily: 'Raleway', fontWeight: FontWeight.bold)),
-        backgroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
-        foregroundColor: themeProvider.isDarkMode ? Colors.white : Colors.black,
-        elevation: 0,
-      ),
-      body: SmartRefresher(
-        controller: _refreshController,
-        onRefresh: _onRefresh,
-        child: _isIncognitoMode
-            ? IncognitoMessage()
-            : _searchHistory.isEmpty
-                ? EmptyState()
-                : HistoryList(
-                    searchHistory: _searchHistory,
-                    onDeleteItem: _deleteHistoryItem,
-                    onClearAll: _clearAllHistory,
-                    onItemTap: (query) =>
-                        _searchService.performSearch(context, query),
-                  ),
-      ),
-    );
-  }
-
-  void _deleteHistoryItem(int index) async {
+  Future<void> _onDeleteItem(int index) async {
     setState(() {
       _searchHistory.removeAt(index);
     });
     await _saveSearchHistory();
   }
 
-  void _clearAllHistory() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Clear All History'),
-        content: Text('Are you sure you want to clear all search history?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text('Clear'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      setState(() {
-        _searchHistory.clear();
-      });
-      await _saveSearchHistory();
-    }
+  Future<void> _onClearAll() async {
+    setState(() {
+      _searchHistory.clear();
+    });
+    await _saveSearchHistory();
   }
 
   Future<void> _saveSearchHistory() async {
@@ -112,13 +105,92 @@ class LibraryScreenState extends State<LibraryScreen> {
     if (_searchHistory.length > maxHistoryItems) {
       _searchHistory = _searchHistory.sublist(0, maxHistoryItems);
     }
-    final history = _searchHistory.map((item) => json.encode(item)).toList();
-    await prefs.setStringList('search_history', history);
+    final savedThreads =
+        _searchHistory.where((item) => item['isSaved'] == true).toList();
+    final searchHistory =
+        _searchHistory.where((item) => item['isSaved'] != true).toList();
+
+    await prefs.setStringList('saved_threads',
+        savedThreads.map((item) => json.encode(item)).toList());
+    await prefs.setStringList('search_history',
+        searchHistory.map((item) => json.encode(item)).toList());
   }
 
   void _onRefresh() async {
     await _loadSearchHistory();
     _refreshController.refreshCompleted();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Library'),
+          ),
+          body: SmartRefresher(
+            controller: _refreshController,
+            onRefresh: _onRefresh,
+            child: _isIncognitoMode
+                ? IncognitoMessage()
+                : _searchHistory.isEmpty
+                    ? EmptyState()
+                    : HistoryList(
+                        searchHistory: _searchHistory,
+                        onDeleteItem: _onDeleteItem,
+                        onClearAll: _onClearAll,
+                        onItemTap: _handleItemTap,
+                      ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleItemTap(Map<String, dynamic> item) async {
+    final savedThreadPath = item['path'] as String?;
+    debugPrint('Tapped item with savedThreadPath: $savedThreadPath');
+
+    if (savedThreadPath != null) {
+      final file = File(savedThreadPath);
+      if (await file.exists()) {
+        try {
+          final jsonString = await file.readAsString();
+          final threadData = json.decode(jsonString);
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => ThreadScreen(
+                query: threadData['query'],
+                searchResults: List<Map<String, dynamic>>.from(
+                    threadData['searchResults']),
+                summary: threadData['summary'],
+                savedSections: threadData['sections'] != null
+                    ? List<Map<String, dynamic>>.from(threadData['sections'])
+                    : null,
+              ),
+            ),
+          );
+        } catch (e) {
+          debugPrint('Error loading saved thread: $e');
+          _performNewSearch(item['query']);
+        }
+      } else {
+        debugPrint('Saved thread file does not exist: $savedThreadPath');
+        _performNewSearch(item['query']);
+      }
+    } else {
+      debugPrint('No saved thread path found');
+      _performNewSearch(item['query']);
+    }
+  }
+
+  void _performNewSearch(String query) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ThreadLoadingScreen(query: query),
+      ),
+    );
   }
 
   @override
