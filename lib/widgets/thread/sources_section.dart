@@ -10,10 +10,10 @@ class SourcesSection extends StatefulWidget {
   const SourcesSection({super.key, required this.searchResults});
 
   @override
-  _SourcesSectionState createState() => _SourcesSectionState();
+  State<SourcesSection> createState() => SourcesSectionState();
 }
 
-class _SourcesSectionState extends State<SourcesSection> {
+class SourcesSectionState extends State<SourcesSection> {
   bool _isExpanded = false;
 
   @override
@@ -213,7 +213,7 @@ class _SourcesSectionState extends State<SourcesSection> {
         ),
       );
     }
-    return Container(
+    return SizedBox(
       width: 40,
       height: 24,
       child: Stack(children: favicons),

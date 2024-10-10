@@ -15,13 +15,31 @@ import 'thread_screen.dart';
 import 'package:provider/provider.dart';
 import '../../theme_provider.dart';
 import '../../utils/constants.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+
+class ThreadSection {
+  final String query;
+  String? summary;
+  List<Map<String, dynamic>>? searchResults;
+  List<String>? relatedQuestions;
+  List<Map<String, String?>>? images;
+
+  ThreadSection({
+    required this.query,
+    this.summary,
+    this.searchResults,
+    this.relatedQuestions,
+    this.images,
+  });
+}
 
 class ThreadScreenState extends State<ThreadScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _animation;
   final TextEditingController _followUpController = TextEditingController();
-  final List<ThreadSection> _threadSections = [];
+  List<ThreadSection> _threadSections = []; // Changed from final to non-final
   bool _isIncognitoMode = false;
   bool _isSpeaking = false;
   late FlutterTts _flutterTts;
@@ -33,9 +51,13 @@ class ThreadScreenState extends State<ThreadScreen>
     super.initState();
     _initializeAnimation();
     _loadIncognitoMode();
-    _loadData();
     _initializeTts();
-    _addInitialSection();
+    if (widget.savedSections != null) {
+      _loadSavedSections();
+    } else {
+      _addInitialSection();
+      _loadData();
+    }
   }
 
   void _initializeAnimation() {
@@ -201,16 +223,83 @@ class ThreadScreenState extends State<ThreadScreen>
     }
   }
 
-  void _shareSearchResult() {
-    final String shareText =
-        'Query: ${widget.query}\n\nAnswer: ${widget.summary}\n\nSearch with ${AppConstants.appName}: ${AppConstants.githubUrl}';
-    Clipboard.setData(ClipboardData(text: shareText)).then((_) {
+  Future<void> _downloadThread() async {
+    try {
+      final threadData = {
+        'query': widget.query,
+        'summary': widget.summary,
+        'searchResults': widget.searchResults,
+        'images': _threadSections
+            .expand((section) => section.images ?? [])
+            .take(3)
+            .map((img) => Map<String, String?>.from(img))
+            .toList(),
+        'sections': _threadSections
+            .map((section) => {
+                  'query': section.query,
+                  'summary': section.summary,
+                  'searchResults': section.searchResults,
+                  'relatedQuestions': section.relatedQuestions,
+                  'images': section.images,
+                })
+            .toList(),
+      };
+
+      final directory = await getApplicationDocumentsDirectory();
+      final fileName = 'thread_${DateTime.now().millisecondsSinceEpoch}.json';
+      final file = File('${directory.path}/$fileName');
+
+      await file.writeAsString(json.encode(threadData));
+      debugPrint('Thread saved to file: ${file.path}');
+
+      // Save the file path to SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final savedThreads = prefs.getStringList('saved_threads') ?? [];
+      final searchHistory = prefs.getStringList('search_history') ?? [];
+
+      // Create the new thread entry
+      final newThreadEntry = json.encode({
+        'query': widget.query,
+        'summary': widget.summary,
+        'path': file.path,
+        'timestamp': DateTime.now().toIso8601String(),
+        'isSaved': true,
+        'images': threadData['images'],
+      });
+
+      // Remove any existing entries with the same query from both lists
+      savedThreads.removeWhere((item) {
+        final decoded = json.decode(item);
+        return decoded['query'] == widget.query;
+      });
+      searchHistory.removeWhere((item) {
+        final decoded = json.decode(item);
+        return decoded['query'] == widget.query;
+      });
+
+      // Add the new thread entry to the saved threads list
+      savedThreads.insert(0, newThreadEntry);
+
+      // Save the updated lists
+      await prefs.setStringList('saved_threads', savedThreads);
+      await prefs.setStringList('search_history', searchHistory);
+
+      debugPrint('Updated saved_threads in SharedPreferences: $savedThreads');
+      debugPrint('Updated search_history in SharedPreferences: $searchHistory');
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Search result copied to clipboard')),
+          SnackBar(content: Text('Thread saved successfully')),
         );
       }
-    });
+    } catch (e) {
+      debugPrint('Error saving thread: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save thread')),
+        );
+      }
+    }
   }
 
   void _addInitialSection() {
@@ -249,6 +338,24 @@ class ThreadScreenState extends State<ThreadScreen>
       debugPrint('Error performing search: $e');
       setState(() => _isLoading = false);
     }
+  }
+
+  void _loadSavedSections() {
+    _threadSections = widget.savedSections!.map((section) {
+      return ThreadSection(
+        query: section['query'] as String,
+        summary: section['summary'] as String?,
+        searchResults: (section['searchResults'] as List<dynamic>?)
+            ?.map((item) => item as Map<String, dynamic>)
+            .toList(),
+        relatedQuestions: (section['relatedQuestions'] as List<dynamic>?)
+            ?.map((item) => item as String)
+            .toList(),
+        images: (section['images'] as List<dynamic>?)
+            ?.map((item) => Map<String, String?>.from(item))
+            .toList(),
+      );
+    }).toList();
   }
 
   @override
@@ -291,8 +398,8 @@ class ThreadScreenState extends State<ThreadScreen>
               elevation: 0,
               actions: [
                 IconButton(
-                  icon: Icon(Iconsax.export),
-                  onPressed: _shareSearchResult,
+                  icon: Icon(Iconsax.document_download),
+                  onPressed: _downloadThread,
                 ),
               ],
             ),
@@ -356,22 +463,6 @@ class ThreadScreenState extends State<ThreadScreen>
       },
     );
   }
-}
-
-class ThreadSection {
-  final String query;
-  String? summary;
-  List<Map<String, dynamic>>? searchResults;
-  List<String>? relatedQuestions;
-  List<Map<String, String?>>? images;
-
-  ThreadSection({
-    required this.query,
-    this.summary,
-    this.searchResults,
-    this.relatedQuestions,
-    this.images,
-  });
 }
 
 class ThreadSectionWidget extends StatelessWidget {
