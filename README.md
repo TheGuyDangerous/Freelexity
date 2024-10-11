@@ -1,19 +1,21 @@
 # Freelexity
 
 Freelexity is an open-source answer engine built with Flutter. It leverages the power of Brave Search API and Groq API to provide users with comprehensive answers to their queries.
+![Freelexity-Ghub](https://github.com/user-attachments/assets/0c144f8d-5844-41eb-b703-dadf410b36c4)
 
-## Table of Contents
+### Don't forget to :star: the repo
 
-1. [Features](#features)
-2. [Prerequisites](#prerequisites)
-3. [Installation](#installation)
-4. [API Keys](#api-keys)
-5. [How It Works](#how-it-works)
-6. [File Structure](#file-structure)
-7. [Workflow](#workflow)
-8. [License](#license)
-9. [Contributing](#contributing)
-10. [Contact](#contact)
+[![GitHub stars](https://img.shields.io/github/stars/TheGuyDangerous/Freelexity.svg?style=social&label=Star)](https://github.com/TheGuyDangerous/Freelexity) ![GitHub forks](https://img.shields.io/github/forks/TheGuyDangerous/Freelexity.svg?style=social&label=Forks) ![GitHub followers](https://img.shields.io/github/followers/TheGuyDangerous.svg?style=social&label=Follow) [![Static Badge](https://img.shields.io/badge/Emoji%20Status-grey?logo=HuggingFace)](https://github.com/TheGuyDangerous/Freelexity/releases) [![Android CI](https://github.com/TheGuyDangerous/Freelexity/actions/workflows/build_and_release.yml/badge.svg)](https://github.com/TheGuyDangerous/Freelexity/actions/workflows/build_and_release.yml) [![Release](https://img.shields.io/github/v/release/TheGuyDangerous/Freelexity?include_prereleases)](https://github.com/TheGuyDangerous/Freelexity/releases/latest) [![Made with Flutter](https://img.shields.io/badge/Made%20with-flutter-61DAFB.svg)](https://flutter.dev/)
+
+# Download
+| Download the app | Badges          |
+| ------- | ------------------ |
+| Google Play   | ![Google Play](https://img.shields.io/badge/Google%20Play-Coming%20Soon-green?logo=GooglePlay&logoColor=%239fd900) |
+| Preview    | ![Preview](https://img.shields.io/badge/Preview-Released-green?logo=Android&logoColor=%239fd900&label=Preview) |
+| Beta   | ![Beta](https://img.shields.io/badge/Beta-Released-green?logo=Android&logoColor=%239fd900) |
+| Stable   | ![Stable](https://img.shields.io/badge/Stable-Released-green?logo=Android&logoColor=%239fd900)                |
+| GitHub   | ![Static Badge](https://img.shields.io/badge/GitHub-Released-green?logo=GitHub&logoColor=%239fd900)                |
+| F-Droid   | ![F-Droid](https://img.shields.io/badge/FDroid-Coming%20Soon-green?logo=F-Droid&logoColor=%239fd900&label=F-Droid) |
 
 ## Features
 
