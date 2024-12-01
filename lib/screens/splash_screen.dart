@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import '../screens/home/home_screen.dart';
-import 'package:provider/provider.dart';
-import '../theme_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/constants.dart';
 import 'dart:async';
 
 class SplashScreen extends StatefulWidget {
@@ -21,16 +20,26 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: Duration(milliseconds: 1500), // Animation duration
+      duration: Duration(milliseconds: 1500),
       vsync: this,
     );
 
     _controller.forward();
 
-    _timer = Timer(Duration(milliseconds: 1500), () {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-      );
+    _timer = Timer(Duration(milliseconds: 1500), () async {
+      final prefs = await SharedPreferences.getInstance();
+      final isFirstLaunch = prefs.getBool(AppConstants.kFirstLaunchKey) ?? true;
+
+      if (isFirstLaunch) {
+        await prefs.setBool(AppConstants.kFirstLaunchKey, false);
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed('/onboarding');
+        }
+      } else {
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed('/home');
+        }
+      }
     });
   }
 
@@ -43,10 +52,10 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
+      backgroundColor: theme.colorScheme.surface,
       body: Center(
         child: Lottie.asset(
           'assets/animations/splash-light.json',

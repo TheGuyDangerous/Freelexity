@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../theme_provider.dart';
+import '../../theme/theme_provider.dart';
 
 class OfflineLabel extends StatelessWidget {
   const OfflineLabel({super.key});

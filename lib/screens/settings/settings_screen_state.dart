@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../license/license_screen.dart';
 import '../../utils/constants.dart';
 import '../../widgets/settings/api_key_input.dart';
-import '../../widgets/settings/settings_switch.dart';
 import 'package:provider/provider.dart';
-import '../../theme_provider.dart';
+import '../../theme/theme_provider.dart';
 import '../../services/search_service.dart';
 import '../../services/groq_api_service.dart';
 import 'settings_screen.dart';
@@ -21,6 +19,7 @@ class SettingsScreenState extends State<SettingsScreen> {
   bool _isBraveApiKeyValid = false;
   bool _isGroqApiKeyValid = false;
   bool _isValidating = false;
+  bool _hasUnsavedChanges = false;
 
   final SearchService _searchService = SearchService();
   final GroqApiService _groqApiService = GroqApiService();
@@ -78,101 +77,77 @@ class SettingsScreenState extends State<SettingsScreen> {
       _isGroqApiKeyValid = false;
     });
 
-    if (_braveApiController.text.isNotEmpty) {
-      try {
-        final isValid =
+    try {
+      if (_braveApiController.text.isNotEmpty) {
+        final isBraveValid =
             await _searchService.validateBraveApiKey(_braveApiController.text);
-        setState(() {
-          _isBraveApiKeyValid = isValid;
-        });
-      } catch (e) {
-        Fluttertoast.showToast(msg: "Error validating Brave API key: $e");
+        setState(() => _isBraveApiKeyValid = isBraveValid);
       }
-    }
 
-    if (_groqApiController.text.isNotEmpty) {
-      try {
-        final isValid =
+      if (_groqApiController.text.isNotEmpty) {
+        final isGroqValid =
             await _groqApiService.validateApiKey(_groqApiController.text);
-        setState(() {
-          _isGroqApiKeyValid = isValid;
-        });
-      } catch (e) {
-        Fluttertoast.showToast(msg: "Error validating Groq API key: $e");
+        setState(() => _isGroqApiKeyValid = isGroqValid);
       }
-    }
 
-    setState(() {
-      _isValidating = false;
-    });
-
-    if (_isBraveApiKeyValid && _isGroqApiKeyValid) {
-      await _saveSettings();
-      Fluttertoast.showToast(
-          msg: "API keys validated and settings saved successfully");
-    } else {
-      Fluttertoast.showToast(
-          msg: "One or more API keys are invalid. Please check and try again.");
+      if (_isBraveApiKeyValid && _isGroqApiKeyValid) {
+        await _saveSettings();
+        setState(() => _hasUnsavedChanges = false);
+        if (mounted) {
+          Fluttertoast.showToast(
+            msg: "Settings validated and saved successfully",
+            backgroundColor: Colors.green,
+          );
+        }
+      } else {
+        if (mounted) {
+          Fluttertoast.showToast(
+            msg: "One or more API keys are invalid",
+            backgroundColor: Colors.red,
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Fluttertoast.showToast(
+          msg: "Error validating API keys: $e",
+          backgroundColor: Colors.red,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isValidating = false);
+      }
     }
   }
 
   void _toggleIncognitoMode(bool value) {
     setState(() {
       _isIncognitoMode = value;
+      _hasUnsavedChanges = true;
     });
   }
 
   void _toggleWhisperModel(bool value) {
     setState(() {
       _useWhisperModel = value;
+      _hasUnsavedChanges = true;
     });
-  }
-
-  Future<void> _validateAndSaveSettings() async {
-    setState(() => _isValidating = true);
-    try {
-      await _saveSettings();
-      if (mounted) {
-        Fluttertoast.showToast(
-          msg: "Settings saved successfully",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[800],
-          textColor: Colors.white,
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        Fluttertoast.showToast(
-          msg: "Error saving settings: $e",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-        );
-      }
-    } finally {
-      setState(() => _isValidating = false);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.isDarkMode;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: isDarkMode ? Colors.black : Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: isDarkMode ? Colors.black : Colors.white,
+        backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
         title: Text(
           'Settings',
-          style: TextStyle(
-            color: isDarkMode ? Colors.white : Colors.black,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
+          style: theme.textTheme.headlineMedium,
         ),
       ),
       body: SingleChildScrollView(
@@ -182,127 +157,177 @@ class SettingsScreenState extends State<SettingsScreen> {
           children: [
             Text(
               'API Keys',
-              style: TextStyle(
-                color: isDarkMode ? Colors.white : Colors.black,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: theme.textTheme.titleLarge,
             ),
             SizedBox(height: 16),
             ApiKeyInput(
               label: 'Brave Search API Key',
               controller: _braveApiController,
               icon: Iconsax.search_normal,
+              onChanged: () => setState(() => _hasUnsavedChanges = true),
             ),
             ApiKeyInput(
               label: 'Groq API Key',
               controller: _groqApiController,
               icon: Iconsax.code,
+              onChanged: () => setState(() => _hasUnsavedChanges = true),
             ),
             SizedBox(height: 24),
             Text(
               'Privacy',
-              style: TextStyle(
-                color: isDarkMode ? Colors.white : Colors.black,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: theme.textTheme.titleLarge,
             ),
             SizedBox(height: 16),
-            SettingsSwitch(
-              title: 'Incognito Mode',
-              subtitle: 'Disable search history',
-              value: _isIncognitoMode,
-              onChanged: _toggleIncognitoMode,
-              isDarkMode: isDarkMode,
+            Container(
+              margin: EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                title: Text(
+                  'Incognito Mode',
+                  style: theme.textTheme.titleMedium,
+                ),
+                subtitle: Text(
+                  'Disable search history',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                trailing: Switch(
+                  value: _isIncognitoMode,
+                  onChanged: _toggleIncognitoMode,
+                ),
+              ),
             ),
             SizedBox(height: 24),
             Text(
               'Speech Recognition',
-              style: TextStyle(
-                color: isDarkMode ? Colors.white : Colors.black,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: theme.textTheme.titleLarge,
             ),
             SizedBox(height: 16),
-            SettingsSwitch(
-              title: 'Use OpenAI Whisper Model',
-              subtitle: 'For improved speech recognition',
-              value: _useWhisperModel,
-              onChanged: _toggleWhisperModel,
-              trailing: Icon(
-                Iconsax.info_circle,
-                color: isDarkMode ? Colors.white70 : Colors.black54,
-                size: 20,
+            Container(
+              margin: EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
               ),
-              isDarkMode: isDarkMode,
+              child: ListTile(
+                title: Text(
+                  'Use OpenAI Whisper Model',
+                  style: theme.textTheme.titleMedium,
+                ),
+                subtitle: Text(
+                  'For improved speech recognition',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(Iconsax.info_circle),
+                      onPressed: _showWhisperInfoDialog,
+                    ),
+                    Switch(
+                      value: _useWhisperModel,
+                      onChanged: _toggleWhisperModel,
+                    ),
+                  ],
+                ),
+              ),
             ),
             SizedBox(height: 24),
             Text(
               'Theme',
-              style: TextStyle(
-                color: isDarkMode ? Colors.white : Colors.black,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: theme.textTheme.titleLarge,
             ),
             SizedBox(height: 16),
-            SettingsSwitch(
-              title: 'Dark Mode',
-              subtitle: 'Toggle dark/light theme',
-              value: isDarkMode,
-              onChanged: (value) => themeProvider.toggleTheme(),
-              isDarkMode: isDarkMode,
+            Container(
+              margin: EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                title: Text(
+                  'Dark Mode',
+                  style: theme.textTheme.titleMedium,
+                ),
+                subtitle: Text(
+                  'Toggle dark/light theme',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                trailing: Switch(
+                  value: themeProvider.isDarkMode,
+                  onChanged: (value) => themeProvider.toggleTheme(),
+                ),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                title: Text(
+                  'Accent Color',
+                  style: theme.textTheme.titleMedium,
+                ),
+                subtitle: Text(
+                  'Choose app accent color',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                trailing: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: themeProvider.seedColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                onTap: () => _showColorPicker(context),
+              ),
             ),
             SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _validateAndSaveSettings,
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    isDarkMode ? Colors.grey[800] : Colors.grey[300],
+            FilledButton(
+              onPressed: (_isValidating || !_hasUnsavedChanges)
+                  ? null
+                  : _validateApiKeys,
+              style: FilledButton.styleFrom(
                 minimumSize: Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: Text(
-                'Validate and Save Settings',
-                style: TextStyle(
-                  color: isDarkMode ? Colors.white : Colors.black,
-                  fontSize: 16,
-                ),
-              ),
+              child: _isValidating
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(_hasUnsavedChanges
+                      ? 'Validate and Save Settings'
+                      : 'No Changes to Save'),
             ),
             SizedBox(height: 24),
             ListTile(
-              leading: Icon(
-                Iconsax.information,
-                color: isDarkMode ? Colors.white70 : Colors.black54,
-              ),
+              leading: Icon(Iconsax.information),
               title: Text(
                 'Version',
-                style: TextStyle(
-                  color: isDarkMode ? Colors.white : Colors.black,
-                ),
+                style: theme.textTheme.titleMedium,
               ),
               subtitle: Text(
                 AppConstants.appVersion,
-                style: TextStyle(
-                  color: isDarkMode ? Colors.white70 : Colors.black54,
-                ),
+                style: theme.textTheme.bodyMedium,
               ),
             ),
             ListTile(
-              leading: Icon(
-                Iconsax.document,
-                color: isDarkMode ? Colors.white70 : Colors.black54,
-              ),
+              leading: Icon(Iconsax.document),
               title: Text(
                 'License',
-                style: TextStyle(
-                  color: isDarkMode ? Colors.white : Colors.black,
-                ),
+                style: theme.textTheme.titleMedium,
               ),
               onTap: () => Navigator.push(
                 context,
@@ -315,12 +340,65 @@ class SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _launchURL(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      Fluttertoast.showToast(msg: "Could not launch $url");
-    }
+  void _showColorPicker(BuildContext context) {
+    final colors = [
+      Colors.blue,
+      Colors.red,
+      Colors.green,
+      Colors.purple,
+      Colors.orange,
+      Colors.teal,
+      Colors.pink,
+      Colors.indigo,
+      Colors.cyan,
+      Colors.amber,
+      Colors.lime,
+      Colors.brown,
+      Colors.grey,
+      Colors.blueGrey,
+      Colors.deepOrange,
+      Colors.deepPurple,
+      Colors.indigo,
+      Colors.pink,
+    ];
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        final themeProvider = Provider.of<ThemeProvider>(context);
+        return AlertDialog(
+          title: Text('Choose Accent Color'),
+          content: SizedBox(
+            width: 300,
+            child: Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: colors.map((color) {
+                return InkWell(
+                  onTap: () {
+                    themeProvider.updateSeedColor(color);
+                    Navigator.of(context).pop();
+                  },
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: themeProvider.seedColor == color
+                            ? Colors.white
+                            : Colors.transparent,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        );
+      },
+    );
   }
 }

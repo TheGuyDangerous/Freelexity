@@ -1,45 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../theme_provider.dart';
 
 class ApiKeyInput extends StatelessWidget {
   final String label;
   final TextEditingController controller;
   final IconData icon;
+  final VoidCallback onChanged;
 
   const ApiKeyInput({
     super.key,
     required this.label,
     required this.controller,
     required this.icon,
+    required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.isDarkMode;
+    final theme = Theme.of(context);
 
     return Container(
       margin: EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: isDarkMode ? Colors.grey[900] : Colors.grey[200],
+        color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
-        leading:
-            Icon(icon, color: isDarkMode ? Colors.white70 : Colors.black54),
+        leading: Icon(icon, color: theme.colorScheme.onSurfaceVariant),
         title: TextField(
           controller: controller,
-          style: TextStyle(
-            color: isDarkMode ? Colors.white : Colors.black,
-          ),
+          style: TextStyle(color: theme.colorScheme.onSurface),
           decoration: InputDecoration(
             labelText: label,
-            labelStyle: TextStyle(
-              color: isDarkMode ? Colors.white70 : Colors.black54,
-            ),
+            labelStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
             border: InputBorder.none,
           ),
+          onChanged: (_) => onChanged(),
         ),
       ),
     );

@@ -7,7 +7,8 @@ Freelexity is an open-source answer engine built with Flutter. It leverages the 
 
 [![GitHub stars](https://img.shields.io/github/stars/TheGuyDangerous/Freelexity.svg?style=social&label=Star)](https://github.com/TheGuyDangerous/Freelexity) ![GitHub forks](https://img.shields.io/github/forks/TheGuyDangerous/Freelexity.svg?style=social&label=Forks) ![GitHub followers](https://img.shields.io/github/followers/TheGuyDangerous.svg?style=social&label=Follow) [![Static Badge](https://img.shields.io/badge/Emoji%20Status-grey?logo=HuggingFace)](https://github.com/TheGuyDangerous/Freelexity/releases) [![Android CI](https://github.com/TheGuyDangerous/Freelexity/actions/workflows/build_and_release.yml/badge.svg)](https://github.com/TheGuyDangerous/Freelexity/actions/workflows/build_and_release.yml) [![Release](https://img.shields.io/github/v/release/TheGuyDangerous/Freelexity?include_prereleases)](https://github.com/TheGuyDangerous/Freelexity/releases/latest) [![Made with Flutter](https://img.shields.io/badge/Made%20with-flutter-61DAFB.svg)](https://flutter.dev/)
 
-# Download
+## Download
+
 | Download the app | Badges          |
 | ------- | ------------------ |
 | Google Play   | ![Google Play](https://img.shields.io/badge/Google%20Play-Coming%20Soon-green?logo=GooglePlay&logoColor=%239fd900) |

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:provider/provider.dart';
-import '../../theme_provider.dart';
 
 class RelatedQuestions extends StatelessWidget {
   final List<String> questions;
@@ -15,7 +13,7 @@ class RelatedQuestions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    final theme = Theme.of(context);
 
     if (questions.isEmpty) {
       return SizedBox.shrink();
@@ -25,7 +23,7 @@ class RelatedQuestions extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Divider(
-          color: themeProvider.isDarkMode ? Colors.grey[800] : Colors.grey[300],
+          color: theme.colorScheme.outlineVariant,
           thickness: 1,
           height: 32,
         ),
@@ -33,9 +31,7 @@ class RelatedQuestions extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
             'Related',
-            style: TextStyle(
-              color: themeProvider.isDarkMode ? Colors.white : Colors.black,
-              fontSize: 20,
+            style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -48,17 +44,13 @@ class RelatedQuestions extends StatelessWidget {
             return ListTile(
               title: Text(
                 questions[index],
-                style: TextStyle(
-                  color: themeProvider.isDarkMode ? Colors.white : Colors.black,
-                  fontSize: 14,
-                ),
+                style: theme.textTheme.bodyMedium,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               trailing: Icon(
                 Iconsax.arrow_right_3,
-                color:
-                    themeProvider.isDarkMode ? Colors.white70 : Colors.black54,
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
                 size: 18,
               ),
               contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:provider/provider.dart';
-import '../../theme_provider.dart';
 
 class SummaryCard extends StatelessWidget {
   final String summary;
@@ -17,10 +15,10 @@ class SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    final theme = Theme.of(context);
 
     return Card(
-      color: themeProvider.isDarkMode ? Colors.grey[900] : Colors.grey[300],
+      color: theme.colorScheme.surfaceContainerHighest,
       margin: EdgeInsets.all(16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
@@ -35,19 +33,13 @@ class SummaryCard extends StatelessWidget {
                   children: [
                     Icon(
                       Iconsax.magic_star,
-                      color: themeProvider.isDarkMode
-                          ? Colors.white
-                          : Colors.black,
+                      color: theme.colorScheme.primary,
                       size: 24,
                     ),
                     SizedBox(width: 8),
                     Text(
                       'Answer',
-                      style: TextStyle(
-                        color: themeProvider.isDarkMode
-                            ? Colors.white
-                            : Colors.black,
-                        fontSize: 18,
+                      style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -56,8 +48,6 @@ class SummaryCard extends StatelessWidget {
                 IconButton(
                   icon: Icon(
                     isSpeaking ? Iconsax.volume_slash : Iconsax.volume_high,
-                    color:
-                        themeProvider.isDarkMode ? Colors.white : Colors.black,
                     size: 20,
                   ),
                   onPressed: () => onSpeakPressed(summary),
@@ -67,10 +57,7 @@ class SummaryCard extends StatelessWidget {
             SizedBox(height: 8),
             Text(
               summary,
-              style: TextStyle(
-                color: themeProvider.isDarkMode ? Colors.white : Colors.black,
-                fontSize: 16,
-              ),
+              style: theme.textTheme.bodyLarge,
             ),
           ],
         ),

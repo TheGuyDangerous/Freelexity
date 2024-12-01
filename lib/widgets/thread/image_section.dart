@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
-import '../../theme_provider.dart';
+import '../../theme/theme_provider.dart';
 import 'full_screen_image.dart';
 
 class ImageSection extends StatelessWidget {
