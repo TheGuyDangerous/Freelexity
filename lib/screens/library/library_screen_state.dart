@@ -124,8 +124,17 @@ class LibraryScreenState extends State<LibraryScreen> {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return Scaffold(
+          backgroundColor:
+              themeProvider.isDarkMode ? Colors.black : Colors.grey[100],
           appBar: AppBar(
-            title: Text('Library'),
+            backgroundColor:
+                themeProvider.isDarkMode ? Colors.black : Colors.grey[100],
+            title: Text(
+              'Library',
+              style: TextStyle(
+                color: themeProvider.isDarkMode ? Colors.white : Colors.black,
+              ),
+            ),
           ),
           body: SmartRefresher(
             controller: _refreshController,

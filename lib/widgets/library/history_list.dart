@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
+import 'package:iconsax/iconsax.dart';
 import '../../utils/date_formatter.dart';
 import 'offline_label.dart';
-import 'package:iconsax/iconsax.dart';
+import '../../theme_provider.dart';
 
 class HistoryList extends StatelessWidget {
   final List<Map<String, dynamic>> searchHistory;
@@ -20,15 +22,17 @@ class HistoryList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Column(
       children: [
-        _buildClearAllButton(context),
+        _buildClearAllButton(context, themeProvider),
         Expanded(
           child: ListView.builder(
             physics: BouncingScrollPhysics(),
             itemCount: searchHistory.length,
             itemBuilder: (context, index) {
-              return _buildHistoryItem(context, searchHistory[index], index);
+              return _buildHistoryItem(
+                  context, searchHistory[index], index, themeProvider);
             },
           ),
         ),
@@ -36,7 +40,8 @@ class HistoryList extends StatelessWidget {
     );
   }
 
-  Widget _buildClearAllButton(BuildContext context) {
+  Widget _buildClearAllButton(
+      BuildContext context, ThemeProvider themeProvider) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: SizedBox(
@@ -44,26 +49,30 @@ class HistoryList extends StatelessWidget {
         child: ElevatedButton(
           onPressed: onClearAll,
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.grey[800],
-            foregroundColor: Colors.white,
+            backgroundColor:
+                themeProvider.isDarkMode ? Colors.grey[800] : Colors.grey[350],
+            foregroundColor:
+                themeProvider.isDarkMode ? Colors.white : Colors.black,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
             padding: EdgeInsets.symmetric(vertical: 12),
           ),
-          child: Text('Clear All History'),
+          child: Text(
+            'Clear All History',
+            style: TextStyle(
+              color: themeProvider.isDarkMode ? Colors.white : Colors.black,
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildHistoryItem(
-      BuildContext context, Map<String, dynamic> item, int index) {
+  Widget _buildHistoryItem(BuildContext context, Map<String, dynamic> item,
+      int index, ThemeProvider themeProvider) {
     List<String> images = [];
-    debugPrint('Processing item: $item'); // Log the entire item
-
     if (item['images'] != null && item['images'] is List) {
-      debugPrint('Images found: ${item['images']}'); // Log the images list
       images = (item['images'] as List)
           .where((img) {
             bool isValid = img is Map<String, dynamic> && img['url'] != null;
@@ -74,9 +83,6 @@ class HistoryList extends StatelessWidget {
           .map((img) => img['url'] as String)
           .take(3)
           .toList();
-      debugPrint('Processed images: $images'); // Log the processed images
-    } else {
-      debugPrint('No images found or invalid image data');
     }
 
     return Dismissible(
@@ -95,6 +101,7 @@ class HistoryList extends StatelessWidget {
         onTap: () => onItemTap(item),
         child: Card(
           margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          color: themeProvider.isDarkMode ? Colors.grey[900] : Colors.white,
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -107,7 +114,7 @@ class HistoryList extends StatelessWidget {
                       child: Text(
                         item['query'] ?? 'No query',
                         style: TextStyle(
-                          color: Theme.of(context).brightness == Brightness.dark
+                          color: themeProvider.isDarkMode
                               ? Colors.white
                               : Colors.black,
                           fontWeight: FontWeight.bold,
@@ -124,7 +131,7 @@ class HistoryList extends StatelessWidget {
                 Text(
                   _truncateSummary(item['summary'] ?? 'No summary available'),
                   style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
+                    color: themeProvider.isDarkMode
                         ? Colors.white70
                         : Colors.black87,
                     fontSize: 14,
@@ -140,28 +147,19 @@ class HistoryList extends StatelessWidget {
                       scrollDirection: Axis.horizontal,
                       itemCount: images.length,
                       itemBuilder: (context, index) {
-                        debugPrint(
-                            'Building image thumbnail for ${images[index]}');
                         return _buildImageThumbnail(images[index]);
                       },
                     ),
-                  )
-                else
-                  SizedBox.shrink(
-                    child: Text('No images to display'),
                   ),
                 const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      formatTimestamp(item['timestamp'] ?? ''),
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
+                Text(
+                  formatTimestamp(item['timestamp'] ?? ''),
+                  style: TextStyle(
+                    color: themeProvider.isDarkMode
+                        ? Colors.grey[400]
+                        : Colors.grey[600],
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),

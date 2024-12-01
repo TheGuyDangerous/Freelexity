@@ -133,25 +133,23 @@ class SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
-        body: Column(
-          children: [
-            SearchAppBar(onSharePressed: _shareApp),
-            Expanded(child: SearchInitialView()),
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-              child: CustomSearchBar(
-                controller: _searchController,
-                isListening: _isListening,
-                useWhisperModel: _useWhisperModel,
-                onSubmitted: (_) => _performSearch(),
-                onListenPressed: _toggleListening,
-              ),
+    return Scaffold(
+      backgroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
+      appBar: SearchAppBar(onSharePressed: _shareApp),
+      body: Column(
+        children: [
+          Expanded(child: SearchInitialView()),
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+            child: CustomSearchBar(
+              controller: _searchController,
+              isListening: _isListening,
+              useWhisperModel: _useWhisperModel,
+              onSubmitted: (_) => _performSearch(),
+              onListenPressed: _toggleListening,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

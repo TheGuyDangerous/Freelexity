@@ -20,28 +20,34 @@ class SettingsSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SwitchListTile(
-      title: Text(
-        title,
-        style: TextStyle(
-          color: isDarkMode ? Colors.white : Colors.black,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: isDarkMode ? Colors.grey[900] : Colors.grey[200],
+        borderRadius: BorderRadius.circular(12),
       ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          color: isDarkMode ? Colors.white70 : Colors.black54,
-          fontSize: 14,
+      child: SwitchListTile(
+        title: Text(
+          title,
+          style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
         ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            color: isDarkMode ? Colors.white70 : Colors.black54,
+            fontSize: 14,
+          ),
+        ),
+        value: value,
+        onChanged: onChanged,
+        activeColor: Colors.blue,
+        inactiveThumbColor: isDarkMode ? Colors.grey[600] : Colors.grey[400],
+        inactiveTrackColor: isDarkMode ? Colors.grey[800] : Colors.grey[300],
+        secondary: trailing,
       ),
-      value: value,
-      onChanged: onChanged,
-      activeColor: Colors.blue,
-      inactiveThumbColor: isDarkMode ? Colors.grey[600] : Colors.grey[400],
-      inactiveTrackColor: isDarkMode ? Colors.grey[800] : Colors.grey[300],
-      secondary: trailing,
     );
   }
 }

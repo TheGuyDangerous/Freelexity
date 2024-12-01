@@ -47,7 +47,6 @@ class SettingsScreenState extends State<SettingsScreen> {
     await prefs.setString('groqApiKey', _groqApiController.text);
     await prefs.setBool('incognitoMode', _isIncognitoMode);
     await prefs.setBool('useWhisperModel', _useWhisperModel);
-    Fluttertoast.showToast(msg: "Settings saved successfully");
   }
 
   void _showWhisperInfoDialog() {
@@ -117,181 +116,202 @@ class SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  void _toggleIncognitoMode(bool value) {
+    setState(() {
+      _isIncognitoMode = value;
+    });
+  }
+
+  void _toggleWhisperModel(bool value) {
+    setState(() {
+      _useWhisperModel = value;
+    });
+  }
+
+  Future<void> _validateAndSaveSettings() async {
+    setState(() => _isValidating = true);
+    try {
+      await _saveSettings();
+      if (mounted) {
+        Fluttertoast.showToast(
+          msg: "Settings saved successfully",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[800],
+          textColor: Colors.white,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Fluttertoast.showToast(
+          msg: "Error saving settings: $e",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+      }
+    } finally {
+      setState(() => _isValidating = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text('Settings',
-                style: TextStyle(
-                    fontFamily: 'Raleway', fontWeight: FontWeight.bold)),
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+
+    return Scaffold(
+      backgroundColor: isDarkMode ? Colors.black : Colors.white,
+      appBar: AppBar(
+        backgroundColor: isDarkMode ? Colors.black : Colors.white,
+        elevation: 0,
+        title: Text(
+          'Settings',
+          style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
           ),
-          body: SingleChildScrollView(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('API Keys',
-                    style: TextStyle(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : Colors.black,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold)),
-                SizedBox(height: 16),
-                ApiKeyInput(
-                  label: 'Brave Search API Key',
-                  controller: _braveApiController,
-                  icon: Iconsax.search_normal,
-                ),
-                ApiKeyInput(
-                  label: 'Groq API Key',
-                  controller: _groqApiController,
-                  icon: Iconsax.code,
-                ),
-                SizedBox(height: 24),
-                Text('Privacy',
-                    style: TextStyle(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white70
-                            : Colors.grey[600],
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold)),
-                SizedBox(height: 16),
-                SettingsSwitch(
-                  isDarkMode: Theme.of(context).brightness == Brightness.dark,
-                  title: 'Incognito Mode',
-                  subtitle: 'Disable search history',
-                  value: _isIncognitoMode,
-                  onChanged: (value) {
-                    setState(() {
-                      _isIncognitoMode = value;
-                    });
-                  },
-                ),
-                SizedBox(height: 24),
-                Text('Speech Recognition',
-                    style: TextStyle(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white70
-                            : Colors.grey[600],
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold)),
-                SizedBox(height: 16),
-                SettingsSwitch(
-                  title: 'Use OpenAI Whisper Model',
-                  subtitle: 'For improved speech recognition',
-                  value: _useWhisperModel,
-                  onChanged: (value) {
-                    setState(() {
-                      _useWhisperModel = value;
-                    });
-                  },
-                  trailing: IconButton(
-                    icon: Icon(Iconsax.info_circle,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.grey[600]
-                            : Colors.black),
-                    onPressed: _showWhisperInfoDialog,
-                  ),
-                  isDarkMode: Theme.of(context).brightness == Brightness.dark,
-                ),
-                SizedBox(height: 24),
-                SettingsSwitch(
-                  isDarkMode: Theme.of(context).brightness == Brightness.dark,
-                  title: 'Dark Mode',
-                  subtitle: 'Toggle dark/light theme',
-                  value: themeProvider.isDarkMode,
-                  onChanged: (value) {
-                    themeProvider.toggleTheme();
-                  },
-                ),
-                SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _isValidating ? null : _validateApiKeys,
-                  // ignore: sort_child_properties_last
-                  child: _isValidating
-                      ? SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.grey[600],
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : Text('Validate and Save Settings'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: themeProvider.isDarkMode
-                        ? Colors.grey[800]
-                        : Colors.grey[800],
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    minimumSize:
-                        Size(double.infinity, 50), // Ensure consistent height
-                  ),
-                ),
-                SizedBox(height: 32),
-                Text('About',
-                    style: TextStyle(
-                        color: themeProvider.isDarkMode
-                            ? Colors.white
-                            : Colors.black,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold)),
-                SizedBox(height: 16),
-                ListTile(
-                  leading: Icon(Iconsax.info_circle,
-                      color: themeProvider.isDarkMode
-                          ? Colors.white70
-                          : Colors.grey[600]),
-                  title: Text('Version'),
-                  subtitle: Text(AppConstants.appVersion),
-                ),
-                ListTile(
-                  leading: Icon(Iconsax.document,
-                      color: themeProvider.isDarkMode
-                          ? Colors.white70
-                          : Colors.grey[600]),
-                  title: Text('License'),
-                  subtitle: Text('Custom License'),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => LicenseScreen()),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Iconsax.code,
-                      color: themeProvider.isDarkMode
-                          ? Colors.white70
-                          : Colors.grey[600]),
-                  title: Text('Source Code'),
-                  subtitle: Text('GitHub'),
-                  onTap: () => _launchURL(AppConstants.githubUrl),
-                ),
-                SizedBox(height: 32),
-                Center(
-                  child: Text(
-                    'Created with ❣️ by Sannidhya Dubey',
-                    style: TextStyle(
-                      fontFamily: 'Raleway',
-                      color: themeProvider.isDarkMode
-                          ? Colors.white70
-                          : Colors.grey[600],
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ],
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'API Keys',
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-        );
-      },
+            SizedBox(height: 16),
+            ApiKeyInput(
+              label: 'Brave Search API Key',
+              controller: _braveApiController,
+              icon: Iconsax.search_normal,
+            ),
+            ApiKeyInput(
+              label: 'Groq API Key',
+              controller: _groqApiController,
+              icon: Iconsax.code,
+            ),
+            SizedBox(height: 24),
+            Text(
+              'Privacy',
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16),
+            SettingsSwitch(
+              title: 'Incognito Mode',
+              subtitle: 'Disable search history',
+              value: _isIncognitoMode,
+              onChanged: _toggleIncognitoMode,
+              isDarkMode: isDarkMode,
+            ),
+            SizedBox(height: 24),
+            Text(
+              'Speech Recognition',
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16),
+            SettingsSwitch(
+              title: 'Use OpenAI Whisper Model',
+              subtitle: 'For improved speech recognition',
+              value: _useWhisperModel,
+              onChanged: _toggleWhisperModel,
+              trailing: Icon(
+                Iconsax.info_circle,
+                color: isDarkMode ? Colors.white70 : Colors.black54,
+                size: 20,
+              ),
+              isDarkMode: isDarkMode,
+            ),
+            SizedBox(height: 24),
+            Text(
+              'Theme',
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16),
+            SettingsSwitch(
+              title: 'Dark Mode',
+              subtitle: 'Toggle dark/light theme',
+              value: isDarkMode,
+              onChanged: (value) => themeProvider.toggleTheme(),
+              isDarkMode: isDarkMode,
+            ),
+            SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _validateAndSaveSettings,
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    isDarkMode ? Colors.grey[800] : Colors.grey[300],
+                minimumSize: Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'Validate and Save Settings',
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white : Colors.black,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            SizedBox(height: 24),
+            ListTile(
+              leading: Icon(
+                Iconsax.information,
+                color: isDarkMode ? Colors.white70 : Colors.black54,
+              ),
+              title: Text(
+                'Version',
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
+              ),
+              subtitle: Text(
+                AppConstants.appVersion,
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white70 : Colors.black54,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(
+                Iconsax.document,
+                color: isDarkMode ? Colors.white70 : Colors.black54,
+              ),
+              title: Text(
+                'License',
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
+              ),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LicenseScreen()),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

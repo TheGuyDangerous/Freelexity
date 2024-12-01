@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../theme_provider.dart';
 
 class ApiKeyInput extends StatelessWidget {
   final String label;
@@ -14,22 +16,28 @@ class ApiKeyInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+
     return Container(
       margin: EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? Colors.grey[900]
-            : Colors.grey[800],
+        color: isDarkMode ? Colors.grey[900] : Colors.grey[200],
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
-        leading: Icon(icon, color: Colors.white70),
+        leading:
+            Icon(icon, color: isDarkMode ? Colors.white70 : Colors.black54),
         title: TextField(
           controller: controller,
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
           decoration: InputDecoration(
             labelText: label,
-            labelStyle: TextStyle(color: Colors.white70),
+            labelStyle: TextStyle(
+              color: isDarkMode ? Colors.white70 : Colors.black54,
+            ),
             border: InputBorder.none,
           ),
         ),
