@@ -375,8 +375,7 @@ class ThreadScreenState extends State<ThreadScreen>
           offset: Offset(
               0, MediaQuery.of(context).size.height * (1 - _animation.value)),
           child: Scaffold(
-            backgroundColor:
-                themeProvider.isDarkMode ? Colors.black : Colors.white,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             appBar: AppBar(
               leading: IconButton(
                 icon: Icon(Iconsax.close_square),
@@ -389,10 +388,8 @@ class ThreadScreenState extends State<ThreadScreen>
               title: Text('Thread',
                   style: TextStyle(
                       fontFamily: 'Raleway', fontWeight: FontWeight.bold)),
-              backgroundColor:
-                  themeProvider.isDarkMode ? Colors.black : Colors.white,
-              foregroundColor:
-                  themeProvider.isDarkMode ? Colors.white : Colors.black,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
               elevation: 0,
               actions: [
                 IconButton(
@@ -419,9 +416,7 @@ class ThreadScreenState extends State<ThreadScreen>
                           ),
                           if (index < _threadSections.length - 1)
                             Divider(
-                              color: themeProvider.isDarkMode
-                                  ? Colors.grey[800]
-                                  : Colors.grey[300],
+                              color: Theme.of(context).dividerColor,
                               thickness: 1,
                               height: 32,
                             ),
