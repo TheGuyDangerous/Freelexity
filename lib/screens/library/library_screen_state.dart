@@ -6,8 +6,6 @@ import '../../widgets/library/history_list.dart';
 import '../../widgets/library/empty_state.dart';
 import '../../widgets/library/incognito_message.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'package:provider/provider.dart';
-import '../../theme_provider.dart';
 import 'library_screen.dart';
 import '../thread/thread_screen.dart';
 import '../thread/thread_loading_screen.dart';
@@ -121,28 +119,31 @@ class LibraryScreenState extends State<LibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text('Library'),
-          ),
-          body: SmartRefresher(
-            controller: _refreshController,
-            onRefresh: _onRefresh,
-            child: _isIncognitoMode
-                ? IncognitoMessage()
-                : _searchHistory.isEmpty
-                    ? EmptyState()
-                    : HistoryList(
-                        searchHistory: _searchHistory,
-                        onDeleteItem: _onDeleteItem,
-                        onClearAll: _onClearAll,
-                        onItemTap: _handleItemTap,
-                      ),
-          ),
-        );
-      },
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
+      appBar: AppBar(
+        backgroundColor: theme.colorScheme.surface,
+        title: Text(
+          'Library',
+          style: theme.textTheme.headlineMedium,
+        ),
+      ),
+      body: SmartRefresher(
+        controller: _refreshController,
+        onRefresh: _onRefresh,
+        child: _isIncognitoMode
+            ? IncognitoMessage()
+            : _searchHistory.isEmpty
+                ? EmptyState()
+                : HistoryList(
+                    searchHistory: _searchHistory,
+                    onDeleteItem: _onDeleteItem,
+                    onClearAll: _onClearAll,
+                    onItemTap: _handleItemTap,
+                  ),
+      ),
     );
   }
 
@@ -156,19 +157,21 @@ class LibraryScreenState extends State<LibraryScreen> {
         try {
           final jsonString = await file.readAsString();
           final threadData = json.decode(jsonString);
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => ThreadScreen(
-                query: threadData['query'],
-                searchResults: List<Map<String, dynamic>>.from(
-                    threadData['searchResults']),
-                summary: threadData['summary'],
-                savedSections: threadData['sections'] != null
-                    ? List<Map<String, dynamic>>.from(threadData['sections'])
-                    : null,
+          if (mounted) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => ThreadScreen(
+                  query: threadData['query'],
+                  searchResults: List<Map<String, dynamic>>.from(
+                      threadData['searchResults']),
+                  summary: threadData['summary'],
+                  savedSections: threadData['sections'] != null
+                      ? List<Map<String, dynamic>>.from(threadData['sections'])
+                      : null,
+                ),
               ),
-            ),
-          );
+            );
+          }
         } catch (e) {
           debugPrint('Error loading saved thread: $e');
           _performNewSearch(item['query']);

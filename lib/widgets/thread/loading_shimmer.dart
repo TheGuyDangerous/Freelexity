@@ -8,23 +8,31 @@ class LoadingShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final baseColor = isDarkMode
+        ? theme.colorScheme.surfaceContainerHighest
+        : theme.colorScheme.surfaceContainer;
+    final highlightColor = isDarkMode
+        ? theme.colorScheme.surfaceContainerHigh
+        : theme.colorScheme.surface;
+
     return SingleChildScrollView(
       child: Shimmer.fromColors(
-        baseColor: isDarkMode ? Colors.grey[900]! : Colors.grey[300]!,
-        highlightColor: isDarkMode ? Colors.grey[800]! : Colors.grey[100]!,
+        baseColor: baseColor,
+        highlightColor: highlightColor,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSourcesShimmer(),
-            _buildSummaryShimmer(),
-            ...List.generate(5, (_) => _buildResultShimmer()),
+            _buildSourcesShimmer(theme),
+            _buildSummaryShimmer(theme),
+            ...List.generate(5, (_) => _buildResultShimmer(theme)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSourcesShimmer() {
+  Widget _buildSourcesShimmer(ThemeData theme) {
     return Container(
       height: 40,
       margin: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
@@ -36,7 +44,7 @@ class LoadingShimmer extends StatelessWidget {
             height: 30,
             margin: EdgeInsets.only(right: 8),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(15),
             ),
           ),
@@ -45,12 +53,12 @@ class LoadingShimmer extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryShimmer() {
+  Widget _buildSummaryShimmer(ThemeData theme) {
     return Container(
       margin: EdgeInsets.all(16),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -59,25 +67,25 @@ class LoadingShimmer extends StatelessWidget {
           Container(
             width: 100,
             height: 20,
-            color: Colors.white,
+            color: theme.colorScheme.surface,
           ),
           SizedBox(height: 8),
           Container(
             width: double.infinity,
             height: 100,
-            color: Colors.white,
+            color: theme.colorScheme.surface,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildResultShimmer() {
+  Widget _buildResultShimmer(ThemeData theme) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -86,20 +94,20 @@ class LoadingShimmer extends StatelessWidget {
           Container(
             width: double.infinity,
             height: 20,
-            color: Colors.white,
+            color: theme.colorScheme.surface,
           ),
           SizedBox(height: 8),
           Container(
             width: double.infinity,
             height: 16,
-            color: Colors.white,
+            color: theme.colorScheme.surface,
           ),
           SizedBox(height: 8),
           Container(
             width: 100,
             height: 30,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(15),
             ),
           ),

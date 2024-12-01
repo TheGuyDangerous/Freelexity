@@ -12,8 +12,6 @@ import '../../widgets/search/search_app_bar.dart';
 import '../../widgets/search/search_initial_view.dart';
 import '../../widgets/search/search_bar.dart';
 import 'search_screen.dart';
-import 'package:provider/provider.dart';
-import '../../theme_provider.dart';
 import '../../screens/thread/thread_loading_screen.dart';
 import '../../utils/constants.dart';
 
@@ -131,27 +129,25 @@ class SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    final theme = Theme.of(context);
 
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
-        body: Column(
-          children: [
-            SearchAppBar(onSharePressed: _shareApp),
-            Expanded(child: SearchInitialView()),
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-              child: CustomSearchBar(
-                controller: _searchController,
-                isListening: _isListening,
-                useWhisperModel: _useWhisperModel,
-                onSubmitted: (_) => _performSearch(),
-                onListenPressed: _toggleListening,
-              ),
+    return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
+      appBar: SearchAppBar(onSharePressed: _shareApp),
+      body: Column(
+        children: [
+          Expanded(child: SearchInitialView()),
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+            child: CustomSearchBar(
+              controller: _searchController,
+              isListening: _isListening,
+              useWhisperModel: _useWhisperModel,
+              onSubmitted: (_) => _performSearch(),
+              onListenPressed: _toggleListening,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

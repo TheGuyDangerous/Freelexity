@@ -13,12 +13,11 @@ class FollowUpInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? Colors.grey[900]
-            : Colors.grey[300],
+        color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(30),
       ),
       child: Row(
@@ -26,17 +25,11 @@ class FollowUpInput extends StatelessWidget {
           Expanded(
             child: TextField(
               controller: controller,
-              style: TextStyle(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
-              ),
+              style: TextStyle(color: theme.colorScheme.onSurface),
               decoration: InputDecoration(
                 hintText: 'Ask follow-up...',
                 hintStyle: TextStyle(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey
-                      : Colors.grey[600],
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
                 border: InputBorder.none,
               ),
@@ -46,9 +39,7 @@ class FollowUpInput extends StatelessWidget {
           IconButton(
             icon: Icon(
               Iconsax.send_1,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black,
+              color: theme.colorScheme.primary,
             ),
             onPressed: () => onSubmitted(controller.text),
           ),

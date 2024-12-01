@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:provider/provider.dart';
-import '../../theme_provider.dart';
 
 class CustomSearchBar extends StatelessWidget {
   final TextEditingController controller;
@@ -21,12 +19,12 @@ class CustomSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    final theme = Theme.of(context);
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: themeProvider.isDarkMode ? Colors.grey[900] : Colors.grey[200],
+        color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(30),
       ),
       child: Row(
@@ -34,15 +32,10 @@ class CustomSearchBar extends StatelessWidget {
           Expanded(
             child: TextField(
               controller: controller,
-              style: TextStyle(
-                  color:
-                      themeProvider.isDarkMode ? Colors.white : Colors.black),
+              style: TextStyle(color: theme.colorScheme.onSurface),
               decoration: InputDecoration(
                 hintText: 'Ask anything...',
-                hintStyle: TextStyle(
-                    color: themeProvider.isDarkMode
-                        ? Colors.grey
-                        : Colors.grey[600]),
+                hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                 border: InputBorder.none,
               ),
               onSubmitted: onSubmitted,
@@ -55,7 +48,7 @@ class CustomSearchBar extends StatelessWidget {
                   : (useWhisperModel
                       ? Iconsax.microphone_2
                       : Iconsax.microphone),
-              color: themeProvider.isDarkMode ? Colors.white : Colors.black,
+              color: theme.colorScheme.onSurface,
             ),
             onPressed: onListenPressed,
           ),

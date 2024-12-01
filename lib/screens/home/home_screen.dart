@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:provider/provider.dart';
 import '../../screens/search/search_screen.dart';
 import '../../screens/library/library_screen.dart';
 import '../../screens/settings/settings_screen.dart';
-import '../../theme_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,35 +21,29 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
     return Scaffold(
       body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (index) {
           setState(() {
             _currentIndex = index;
           });
         },
-        items: const [
-          BottomNavigationBarItem(
+        destinations: const [
+          NavigationDestination(
             icon: Icon(Iconsax.search_normal),
             label: 'Search',
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: Icon(Iconsax.book_1),
             label: 'Library',
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: Icon(Iconsax.setting_2),
             label: 'Settings',
           ),
         ],
-        backgroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
-        selectedItemColor:
-            themeProvider.isDarkMode ? Colors.white : Colors.black,
-        unselectedItemColor: Colors.grey,
       ),
     );
   }

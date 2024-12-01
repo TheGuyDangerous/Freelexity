@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../theme_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SourcesSection extends StatefulWidget {
   final List<Map<String, dynamic>> searchResults;
@@ -18,7 +16,7 @@ class SourcesSectionState extends State<SourcesSection> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    final theme = Theme.of(context);
 
     return GestureDetector(
       onTap: () {
@@ -31,9 +29,7 @@ class SourcesSectionState extends State<SourcesSection> {
         height: _isExpanded ? null : 80,
         margin: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
         decoration: BoxDecoration(
-          color: themeProvider.isDarkMode
-              ? Colors.grey[800]!.withOpacity(0.5)
-              : Colors.grey[300]!.withOpacity(0.5),
+          color: theme.colorScheme.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -48,34 +44,26 @@ class SourcesSectionState extends State<SourcesSection> {
                     children: [
                       Icon(
                         Iconsax.document,
-                        color: themeProvider.isDarkMode
-                            ? Colors.white
-                            : Colors.black,
+                        color: theme.colorScheme.primary,
                       ),
                       SizedBox(width: 8),
                       Text(
                         'Sources',
-                        style: TextStyle(
-                          color: themeProvider.isDarkMode
-                              ? Colors.white
-                              : Colors.black,
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
                         ),
                       ),
                     ],
                   ),
                   Row(
                     children: [
-                      _buildFaviconStack(),
+                      _buildFaviconStack(theme),
                       SizedBox(width: 8),
                       Icon(
                         _isExpanded
                             ? Icons.arrow_drop_up
                             : Icons.arrow_drop_down,
-                        color: themeProvider.isDarkMode
-                            ? Colors.white
-                            : Colors.black,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ],
                   ),
@@ -83,7 +71,7 @@ class SourcesSectionState extends State<SourcesSection> {
               ),
             ),
             if (_isExpanded)
-              Container(
+              SizedBox(
                 height: 80,
                 child: ScrollConfiguration(
                   behavior: BouncyScrollBehavior(),
@@ -95,8 +83,7 @@ class SourcesSectionState extends State<SourcesSection> {
                       final isLastItem =
                           index == widget.searchResults.length - 1;
                       return GestureDetector(
-                        onTap: () =>
-                            _showSourceDetails(context, result, themeProvider),
+                        onTap: () => _showSourceDetails(context, result),
                         child: Container(
                           width: 200,
                           margin: EdgeInsets.only(
@@ -106,14 +93,12 @@ class SourcesSectionState extends State<SourcesSection> {
                           ),
                           padding: EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: themeProvider.isDarkMode
-                                ? Colors.grey[700]
-                                : Colors.grey[200],
+                            color: theme.colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
                             children: [
-                              _buildFavicon(result['url']),
+                              _buildFavicon(result['url'], theme),
                               SizedBox(width: 8),
                               Expanded(
                                 child: Column(
@@ -122,11 +107,8 @@ class SourcesSectionState extends State<SourcesSection> {
                                   children: [
                                     Text(
                                       result['title'] ?? '',
-                                      style: TextStyle(
-                                        color: themeProvider.isDarkMode
-                                            ? Colors.white
-                                            : Colors.black,
-                                        fontSize: 14,
+                                      style:
+                                          theme.textTheme.bodyMedium?.copyWith(
                                         fontWeight: FontWeight.bold,
                                       ),
                                       maxLines: 1,
@@ -135,11 +117,10 @@ class SourcesSectionState extends State<SourcesSection> {
                                     SizedBox(height: 4),
                                     Text(
                                       Uri.parse(result['url'] ?? '').host,
-                                      style: TextStyle(
-                                        color: themeProvider.isDarkMode
-                                            ? Colors.white70
-                                            : Colors.black54,
-                                        fontSize: 12,
+                                      style:
+                                          theme.textTheme.bodySmall?.copyWith(
+                                        color: theme.colorScheme.onSurface
+                                            .withOpacity(0.7),
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -161,14 +142,17 @@ class SourcesSectionState extends State<SourcesSection> {
     );
   }
 
-  Widget _buildFavicon(String? url) {
+  Widget _buildFavicon(String? url, ThemeData theme) {
     return Container(
       width: 24,
       height: 24,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white,
-        border: Border.all(color: Colors.grey[300]!, width: 1),
+        color: theme.colorScheme.surface,
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant,
+          width: 1,
+        ),
       ),
       child: ClipOval(
         child: Image.network(
@@ -177,14 +161,15 @@ class SourcesSectionState extends State<SourcesSection> {
           height: 16,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
-            return Icon(Icons.public, size: 16);
+            return Icon(Icons.public,
+                size: 16, color: theme.colorScheme.onSurface);
           },
         ),
       ),
     );
   }
 
-  Widget _buildFaviconStack() {
+  Widget _buildFaviconStack(ThemeData theme) {
     List<Widget> favicons = [];
     for (int i = 0; i < widget.searchResults.length && i < 2; i++) {
       favicons.add(
@@ -195,8 +180,11 @@ class SourcesSectionState extends State<SourcesSection> {
             height: 24,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white,
-              border: Border.all(color: Colors.grey[300]!, width: 1),
+              color: theme.colorScheme.surface,
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant,
+                width: 1,
+              ),
             ),
             child: ClipOval(
               child: Image.network(
@@ -205,7 +193,8 @@ class SourcesSectionState extends State<SourcesSection> {
                 height: 16,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
-                  return Icon(Icons.public, size: 16);
+                  return Icon(Icons.public,
+                      size: 16, color: theme.colorScheme.onSurface);
                 },
               ),
             ),
@@ -220,100 +209,79 @@ class SourcesSectionState extends State<SourcesSection> {
     );
   }
 
-  void _showSourceDetails(BuildContext context, Map<String, dynamic> result,
-      ThemeProvider themeProvider) {
+  void _showSourceDetails(BuildContext context, Map<String, dynamic> result) {
+    final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.3,
         decoration: BoxDecoration(
-          color: themeProvider.isDarkMode ? Colors.grey[900] : Colors.white,
+          color: theme.colorScheme.surfaceContainer,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24.0),
             topRight: Radius.circular(24.0),
           ),
         ),
-        child: _buildPanel(context, result, themeProvider),
+        child: _buildPanel(context, result),
       ),
     );
   }
 
-  Widget _buildPanel(BuildContext context, Map<String, dynamic> result,
-      ThemeProvider themeProvider) {
-    // Clean up the title and content
+  Widget _buildPanel(BuildContext context, Map<String, dynamic> result) {
+    final theme = Theme.of(context);
     String cleanTitle = _cleanText(result['title'] ?? 'No Title');
     String cleanContent = _cleanText(result['scrapedContent'] ?? '');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Center(
-          child: Container(
-            width: 40,
-            height: 5,
-            margin: EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.grey[400],
-              borderRadius: BorderRadius.circular(2.5),
-            ),
-          ),
-        ),
-        SizedBox(height: 8),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            cleanTitle,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: themeProvider.isDarkMode ? Colors.white : Colors.black,
-            ),
-          ),
-        ),
-        SizedBox(height: 16),
-        Expanded(
-          child: cleanContent.isNotEmpty
-              ? SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+        Container(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  _buildFavicon(result['url'], theme),
+                  SizedBox(width: 8),
+                  Expanded(
                     child: Text(
-                      cleanContent,
-                      style: TextStyle(
-                        color: themeProvider.isDarkMode
-                            ? Colors.white70
-                            : Colors.black87,
+                      cleanTitle,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                      textAlign: TextAlign.left,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                )
-              : Center(
-                  child: Text(
-                    'No info available',
-                    style: TextStyle(
-                      color: themeProvider.isDarkMode
-                          ? Colors.white70
-                          : Colors.black87,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              Text(
+                Uri.parse(result['url'] ?? '').host,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.7),
                 ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: ElevatedButton(
-            onPressed: () => _launchURL(result['url']),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: themeProvider.isDarkMode
-                  ? Colors.grey[800]
-                  : Colors.grey[300],
-              foregroundColor:
-                  themeProvider.isDarkMode ? Colors.white : Colors.black,
-            ),
-            child: Text('View Source'),
+              ),
+              SizedBox(height: 16),
+              Text(
+                cleanContent,
+                style: theme.textTheme.bodyMedium,
+                maxLines: 5,
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: 16),
+              FilledButton.tonal(
+                onPressed: () async {
+                  final url = Uri.parse(result['url'] ?? '');
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url);
+                  }
+                },
+                child: Text('Visit Website'),
+              ),
+            ],
           ),
         ),
       ],
@@ -321,34 +289,10 @@ class SourcesSectionState extends State<SourcesSection> {
   }
 
   String _cleanText(String text) {
-    // Remove any non-printable characters and weird symbols
-    String cleaned = text.replaceAll(RegExp(r'[^\x20-\x7E]'), '');
-
-    // Remove any extra whitespace
-    cleaned = cleaned.trim().replaceAll(RegExp(r'\s+'), ' ');
-
-    // Decode HTML entities
-    cleaned = _decodeHtmlEntities(cleaned);
-
-    // If the text is empty after cleaning, return a default message
-    return cleaned.isNotEmpty ? cleaned : 'No information available';
-  }
-
-  String _decodeHtmlEntities(String text) {
     return text
-        .replaceAll('&amp;', '&')
-        .replaceAll('&lt;', '<')
-        .replaceAll('&gt;', '>')
-        .replaceAll('&quot;', '"')
-        .replaceAll('&#39;', "'");
-  }
-
-  Future<void> _launchURL(String? url) async {
-    if (url != null && await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
-    } else {
-      debugPrint('Could not launch $url');
-    }
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .replaceAll(RegExp(r'[^\x20-\x7E]'), '')
+        .trim();
   }
 }
 

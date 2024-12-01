@@ -4,9 +4,6 @@ import 'dart:io';
 import '../../widgets/thread/loading_shimmer.dart';
 import '../../services/search_service.dart';
 import 'thread_screen.dart';
-import '../../theme_provider.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ThreadLoadingScreen extends StatefulWidget {
   final String query;
@@ -14,11 +11,11 @@ class ThreadLoadingScreen extends StatefulWidget {
   final Map<String, dynamic>? savedThreadData;
 
   const ThreadLoadingScreen({
-    Key? key,
+    super.key,
     required this.query,
     this.savedThreadPath,
     this.savedThreadData,
-  }) : super(key: key);
+  });
 
   @override
   State<ThreadLoadingScreen> createState() => _ThreadLoadingScreenState();
@@ -91,20 +88,21 @@ class _ThreadLoadingScreenState extends State<ThreadLoadingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
+        backgroundColor: theme.colorScheme.surface,
         title: Text(
-            widget.savedThreadPath != null || widget.savedThreadData != null
-                ? 'Loading Saved Thread'
-                : 'Searching...'),
-        backgroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
-        foregroundColor: themeProvider.isDarkMode ? Colors.white : Colors.black,
+          widget.savedThreadPath != null || widget.savedThreadData != null
+              ? 'Loading Saved Thread'
+              : 'Searching...',
+          style: theme.textTheme.titleLarge,
+        ),
       ),
       body: SingleChildScrollView(
-        child: LoadingShimmer(isDarkMode: themeProvider.isDarkMode),
+        child: LoadingShimmer(isDarkMode: theme.brightness == Brightness.dark),
       ),
     );
   }

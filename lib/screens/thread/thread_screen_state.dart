@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -13,8 +12,7 @@ import '../../widgets/thread/follow_up_input.dart';
 import '../../services/search_service.dart';
 import 'thread_screen.dart';
 import 'package:provider/provider.dart';
-import '../../theme_provider.dart';
-import '../../utils/constants.dart';
+import '../../theme/theme_provider.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
@@ -472,12 +470,12 @@ class ThreadSectionWidget extends StatelessWidget {
   final bool isSpeaking;
 
   const ThreadSectionWidget({
-    Key? key,
+    super.key,
     required this.section,
     required this.onFollowUpSelected,
     required this.onSpeakPressed,
     required this.isSpeaking,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

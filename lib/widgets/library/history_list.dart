@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:iconsax/iconsax.dart';
 import '../../utils/date_formatter.dart';
 import 'offline_label.dart';
-import 'package:iconsax/iconsax.dart';
 
 class HistoryList extends StatelessWidget {
   final List<Map<String, dynamic>> searchHistory;
@@ -11,24 +11,26 @@ class HistoryList extends StatelessWidget {
   final Function(Map<String, dynamic>) onItemTap;
 
   const HistoryList({
-    Key? key,
+    super.key,
     required this.searchHistory,
     required this.onDeleteItem,
     required this.onClearAll,
     required this.onItemTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       children: [
-        _buildClearAllButton(context),
+        _buildClearAllButton(context, theme),
         Expanded(
           child: ListView.builder(
             physics: BouncingScrollPhysics(),
             itemCount: searchHistory.length,
             itemBuilder: (context, index) {
-              return _buildHistoryItem(context, searchHistory[index], index);
+              return _buildHistoryItem(
+                  context, searchHistory[index], index, theme);
             },
           ),
         ),
@@ -36,16 +38,14 @@ class HistoryList extends StatelessWidget {
     );
   }
 
-  Widget _buildClearAllButton(BuildContext context) {
+  Widget _buildClearAllButton(BuildContext context, ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: SizedBox(
         width: double.infinity,
-        child: ElevatedButton(
+        child: FilledButton.tonal(
           onPressed: onClearAll,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.grey[800],
-            foregroundColor: Colors.white,
+          style: FilledButton.styleFrom(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -57,35 +57,24 @@ class HistoryList extends StatelessWidget {
     );
   }
 
-  Widget _buildHistoryItem(
-      BuildContext context, Map<String, dynamic> item, int index) {
+  Widget _buildHistoryItem(BuildContext context, Map<String, dynamic> item,
+      int index, ThemeData theme) {
     List<String> images = [];
-    debugPrint('Processing item: $item'); // Log the entire item
-
     if (item['images'] != null && item['images'] is List) {
-      debugPrint('Images found: ${item['images']}'); // Log the images list
       images = (item['images'] as List)
-          .where((img) {
-            bool isValid = img is Map<String, dynamic> && img['url'] != null;
-            debugPrint(
-                'Image $img is valid: $isValid'); // Log each image validity
-            return isValid;
-          })
+          .where((img) => img is Map<String, dynamic> && img['url'] != null)
           .map((img) => img['url'] as String)
           .take(3)
           .toList();
-      debugPrint('Processed images: $images'); // Log the processed images
-    } else {
-      debugPrint('No images found or invalid image data');
     }
 
     return Dismissible(
       key: ValueKey(item['timestamp']),
       background: Container(
-        color: const Color.fromARGB(132, 244, 67, 54),
+        color: theme.colorScheme.errorContainer,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20.0),
-        child: const Icon(Iconsax.trash, color: Colors.white),
+        child: Icon(Iconsax.trash, color: theme.colorScheme.onErrorContainer),
       ),
       direction: DismissDirection.endToStart,
       onDismissed: (direction) {
@@ -95,6 +84,7 @@ class HistoryList extends StatelessWidget {
         onTap: () => onItemTap(item),
         child: Card(
           margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          color: theme.colorScheme.surfaceContainerHigh,
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -106,13 +96,7 @@ class HistoryList extends StatelessWidget {
                     Expanded(
                       child: Text(
                         item['query'] ?? 'No query',
-                        style: TextStyle(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white
-                              : Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                        style: theme.textTheme.titleMedium,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -123,11 +107,8 @@ class HistoryList extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   _truncateSummary(item['summary'] ?? 'No summary available'),
-                  style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white70
-                        : Colors.black87,
-                    fontSize: 14,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.8),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -140,28 +121,16 @@ class HistoryList extends StatelessWidget {
                       scrollDirection: Axis.horizontal,
                       itemCount: images.length,
                       itemBuilder: (context, index) {
-                        debugPrint(
-                            'Building image thumbnail for ${images[index]}');
-                        return _buildImageThumbnail(images[index]);
+                        return _buildImageThumbnail(images[index], theme);
                       },
                     ),
-                  )
-                else
-                  SizedBox.shrink(
-                    child: Text('No images to display'),
                   ),
                 const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      formatTimestamp(item['timestamp'] ?? ''),
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
+                Text(
+                  formatTimestamp(item['timestamp'] ?? ''),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  ),
                 ),
               ],
             ),
@@ -171,7 +140,7 @@ class HistoryList extends StatelessWidget {
     );
   }
 
-  Widget _buildImageThumbnail(String imageUrl) {
+  Widget _buildImageThumbnail(String imageUrl, ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: ClipRRect(
@@ -181,18 +150,12 @@ class HistoryList extends StatelessWidget {
           width: 60,
           height: 60,
           fit: BoxFit.cover,
-          placeholder: (context, url) {
-            debugPrint('Loading image: $url');
-            return Container(
-              width: 60,
-              height: 60,
-              color: Colors.grey[300],
-            );
-          },
-          errorWidget: (context, url, error) {
-            debugPrint('Error loading image: $url, Error: $error');
-            return const SizedBox.shrink();
-          },
+          placeholder: (context, url) => Container(
+            width: 60,
+            height: 60,
+            color: theme.colorScheme.surfaceContainerHighest,
+          ),
+          errorWidget: (context, url, error) => const SizedBox.shrink(),
         ),
       ),
     );

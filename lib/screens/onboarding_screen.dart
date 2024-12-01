@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:liquid_swipe/liquid_swipe.dart';
 import 'package:lottie/lottie.dart';
 import 'package:iconsax/iconsax.dart';
-import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 
 class OnboardingScreen extends StatelessWidget {
@@ -13,27 +12,27 @@ class OnboardingScreen extends StatelessWidget {
     final pages = [
       _buildPage(
         context,
-        backgroundColor: AppTheme.onboardingBackground1,
-        contentColor: AppTheme.onboardingText1,
         title: 'Welcome to ${AppConstants.appName}',
         subtitle: 'Discover a new way to search',
         animationPath: 'assets/animations/freelexity-lightgrey.json',
+        backgroundColor: Color.fromRGBO(17, 20, 25, 1),
+        contentColor: Colors.white,
       ),
       _buildPage(
         context,
-        backgroundColor: AppTheme.onboardingBackground2,
-        contentColor: AppTheme.onboardingText2,
         title: 'Setup your API keys',
         subtitle: 'In the settings page, and start searching',
         animationPath: 'assets/animations/freelexity-lightgrey.json',
+        backgroundColor: Color.fromRGBO(26, 17, 18, 1),
+        contentColor: Colors.white,
       ),
       _buildPage(
         context,
-        backgroundColor: AppTheme.onboardingBackground3,
-        contentColor: AppTheme.onboardingText1,
         title: 'Powered by AI',
         subtitle: 'Search for anything and everything',
         animationPath: 'assets/animations/freelexity-lightgrey.json',
+        backgroundColor: Color.fromRGBO(15, 21, 19, 1),
+        contentColor: Colors.white,
         showButton: true,
       ),
     ];
@@ -51,13 +50,15 @@ class OnboardingScreen extends StatelessWidget {
 
   Widget _buildPage(
     BuildContext context, {
-    required Color backgroundColor,
-    required Color contentColor,
     required String title,
     required String subtitle,
     required String animationPath,
+    required Color backgroundColor,
+    required Color contentColor,
     bool showButton = false,
   }) {
+    final theme = Theme.of(context);
+
     return Container(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height,
@@ -83,9 +84,7 @@ class OnboardingScreen extends StatelessWidget {
                       children: [
                         Text(
                           title,
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                          style: theme.textTheme.headlineMedium?.copyWith(
                             color: contentColor,
                           ),
                           textAlign: TextAlign.center,
@@ -94,8 +93,7 @@ class OnboardingScreen extends StatelessWidget {
                         Text(
                           subtitle,
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
+                          style: theme.textTheme.bodyLarge?.copyWith(
                             color: contentColor.withOpacity(0.7),
                           ),
                         ),
@@ -109,22 +107,19 @@ class OnboardingScreen extends StatelessWidget {
               Positioned(
                 bottom: 30,
                 right: 30,
-                child: GestureDetector(
-                  onTap: () {
+                child: FilledButton(
+                  onPressed: () {
                     Navigator.pushReplacementNamed(context, '/home');
                   },
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: contentColor,
-                    ),
-                    child: Icon(
-                      Iconsax.search_normal,
-                      color: backgroundColor,
-                      size: 24,
-                    ),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: contentColor,
+                    foregroundColor: backgroundColor,
+                    shape: const CircleBorder(),
+                    padding: const EdgeInsets.all(16),
+                  ),
+                  child: Icon(
+                    Iconsax.search_normal,
+                    color: backgroundColor,
                   ),
                 ),
               ),
