@@ -77,7 +77,9 @@ jobs:
       - name: Cache Pub dependencies
         uses: actions/cache@v3
         with:
-          path: ${{ runner.tool_cache }}/flutter/pub-cache
+          path: |
+            ~/.pub-cache
+            ${{ env.FLUTTER_HOME }}/.pub-cache
           key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             ${{ runner.os }}-pub-
