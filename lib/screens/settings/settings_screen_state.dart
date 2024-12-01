@@ -16,6 +16,7 @@ class SettingsScreenState extends State<SettingsScreen> {
   final TextEditingController _groqApiController = TextEditingController();
   bool _isIncognitoMode = false;
   bool _useWhisperModel = false;
+  bool _useGoogleSearch = false;
   bool _isBraveApiKeyValid = false;
   bool _isGroqApiKeyValid = false;
   bool _isValidating = false;
@@ -35,8 +36,9 @@ class SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _braveApiController.text = prefs.getString('braveApiKey') ?? '';
       _groqApiController.text = prefs.getString('groqApiKey') ?? '';
-      _isIncognitoMode = prefs.getBool('incognitoMode') ?? false;
+      _isIncognitoMode = prefs.getBool('isIncognitoMode') ?? false;
       _useWhisperModel = prefs.getBool('useWhisperModel') ?? false;
+      _useGoogleSearch = prefs.getBool('useGoogleSearch') ?? false;
     });
   }
 
@@ -44,8 +46,9 @@ class SettingsScreenState extends State<SettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('braveApiKey', _braveApiController.text);
     await prefs.setString('groqApiKey', _groqApiController.text);
-    await prefs.setBool('incognitoMode', _isIncognitoMode);
+    await prefs.setBool('isIncognitoMode', _isIncognitoMode);
     await prefs.setBool('useWhisperModel', _useWhisperModel);
+    await prefs.setBool('useGoogleSearch', _useGoogleSearch);
   }
 
   void _showWhisperInfoDialog() {
@@ -78,10 +81,12 @@ class SettingsScreenState extends State<SettingsScreen> {
     });
 
     try {
-      if (_braveApiController.text.isNotEmpty) {
+      if (!_useGoogleSearch && _braveApiController.text.isNotEmpty) {
         final isBraveValid =
             await _searchService.validateBraveApiKey(_braveApiController.text);
         setState(() => _isBraveApiKeyValid = isBraveValid);
+      } else {
+        setState(() => _isBraveApiKeyValid = true);
       }
 
       if (_groqApiController.text.isNotEmpty) {
@@ -90,7 +95,11 @@ class SettingsScreenState extends State<SettingsScreen> {
         setState(() => _isGroqApiKeyValid = isGroqValid);
       }
 
-      if (_isBraveApiKeyValid && _isGroqApiKeyValid) {
+      final validationPassed = _useGoogleSearch
+          ? _isGroqApiKeyValid // Only check Groq API when using Google Search
+          : _isBraveApiKeyValid && _isGroqApiKeyValid;
+
+      if (validationPassed) {
         await _saveSettings();
         setState(() => _hasUnsavedChanges = false);
         if (mounted) {
@@ -101,8 +110,11 @@ class SettingsScreenState extends State<SettingsScreen> {
         }
       } else {
         if (mounted) {
+          final message = _useGoogleSearch
+              ? "Groq API key is invalid"
+              : "One or more API keys are invalid";
           Fluttertoast.showToast(
-            msg: "One or more API keys are invalid",
+            msg: message,
             backgroundColor: Colors.red,
           );
         }
@@ -135,6 +147,35 @@ class SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
+  void _toggleGoogleSearch(bool value) {
+    setState(() {
+      _useGoogleSearch = value;
+      _hasUnsavedChanges = true;
+    });
+  }
+
+  void _showGoogleSearchInfoDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Google Search'),
+          content: Text(
+              'The image search functionality is currently being tested and will not be available for now. '
+              'Other search features will work as expected.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -160,17 +201,55 @@ class SettingsScreenState extends State<SettingsScreen> {
               style: theme.textTheme.titleLarge,
             ),
             SizedBox(height: 16),
-            ApiKeyInput(
-              label: 'Brave Search API Key',
-              controller: _braveApiController,
-              icon: Iconsax.search_normal,
-              onChanged: () => setState(() => _hasUnsavedChanges = true),
-            ),
+            if (!_useGoogleSearch)
+              ApiKeyInput(
+                label: 'Brave API Key',
+                controller: _braveApiController,
+                icon: Iconsax.search_normal,
+                onChanged: () => setState(() => _hasUnsavedChanges = true),
+              ),
             ApiKeyInput(
               label: 'Groq API Key',
               controller: _groqApiController,
               icon: Iconsax.code,
               onChanged: () => setState(() => _hasUnsavedChanges = true),
+            ),
+            SizedBox(height: 24),
+            Text(
+              'Search',
+              style: theme.textTheme.titleLarge,
+            ),
+            SizedBox(height: 16),
+            Container(
+              margin: EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                title: Text(
+                  'Use Google Search',
+                  style: theme.textTheme.titleMedium,
+                ),
+                subtitle: Text(
+                  'Use Google Search instead of Brave',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(Iconsax.info_circle),
+                      onPressed: _showGoogleSearchInfoDialog,
+                    ),
+                    Switch(
+                      value: _useGoogleSearch,
+                      onChanged: _toggleGoogleSearch,
+                    ),
+                  ],
+                ),
+                onTap: () => _toggleGoogleSearch(!_useGoogleSearch),
+              ),
             ),
             SizedBox(height: 24),
             Text(
