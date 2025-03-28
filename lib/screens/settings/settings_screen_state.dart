@@ -204,319 +204,527 @@ class SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: theme.appBarTheme.backgroundColor,
-        elevation: 0,
-        title: Text(
-          'Settings',
-          style: theme.textTheme.headlineMedium,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Settings',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  color: theme.colorScheme.onBackground,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Customize your app experience',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onBackground.withOpacity(0.7),
+                ),
+              ),
+              const SizedBox(height: 32),
+              _buildSection(
+                context,
+                'API Keys',
+                const Icon(Iconsax.key, size: 20),
+                [
+                  if (!_useGoogleSearch)
+                    ApiKeyInput(
+                      label: 'Brave API Key',
+                      controller: _braveApiController,
+                      icon: Iconsax.search_normal,
+                      onChanged: () => setState(() => _hasUnsavedChanges = true),
+                    ),
+                  ApiKeyInput(
+                    label: 'Groq API Key',
+                    controller: _groqApiController,
+                    icon: Iconsax.code,
+                    onChanged: () => setState(() => _hasUnsavedChanges = true),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              _buildSection(
+                context,
+                'Search',
+                const Icon(Iconsax.search_normal, size: 20),
+                [
+                  _buildSettingItem(
+                    context,
+                    'Use Google Search',
+                    'Use Google Search instead of Brave',
+                    Iconsax.document,
+                    _useGoogleSearch,
+                    _toggleGoogleSearch,
+                    onInfoPressed: () => _showGoogleSearchInfoDialog(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              _buildSection(
+                context,
+                'Privacy',
+                const Icon(Iconsax.shield, size: 20),
+                [
+                  _buildSettingItem(
+                    context,
+                    'Incognito Mode',
+                    'Disable search history',
+                    Iconsax.user_minus,
+                    _isIncognitoMode,
+                    _toggleIncognitoMode,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              _buildSection(
+                context,
+                'Speech Recognition',
+                const Icon(Iconsax.microphone, size: 20),
+                [
+                  _buildSettingItem(
+                    context,
+                    'Use OpenAI Whisper Model',
+                    'For improved speech recognition',
+                    Iconsax.voice_square,
+                    _useWhisperModel,
+                    _toggleWhisperModel,
+                    onInfoPressed: _showWhisperInfoDialog,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              _buildSection(
+                context,
+                'Theme',
+                const Icon(Iconsax.brush_2, size: 20),
+                [
+                  _buildSettingItem(
+                    context,
+                    'Dark Mode',
+                    'Toggle dark/light theme',
+                    Iconsax.moon,
+                    themeProvider.isDarkMode,
+                    (value) => themeProvider.toggleTheme(),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildColorPickerItem(context),
+                ],
+              ),
+              const SizedBox(height: 32),
+              _buildSection(
+                context,
+                'Query Disambiguation',
+                const Icon(Iconsax.message_question, size: 20),
+                [
+                  _buildSettingItem(
+                    context,
+                    'Enable ambiguity detection',
+                    'Detect and clarify ambiguous search queries',
+                    Iconsax.information,
+                    _enableAmbiguityDetection,
+                    _toggleAmbiguityDetection,
+                  ),
+                  if (_enableAmbiguityDetection) ...[
+                    const SizedBox(height: 16),
+                    _buildThresholdSlider(context),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 32),
+              _buildSection(
+                context,
+                'About',
+                const Icon(Iconsax.info_circle, size: 20),
+                [
+                  _buildInfoButton(
+                    context,
+                    'About Freelexity',
+                    'Learn more about the app',
+                    Iconsax.info_circle,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => LicenseScreen()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'API Keys',
-              style: theme.textTheme.titleLarge,
-            ),
-            SizedBox(height: 16),
-            if (!_useGoogleSearch)
-              ApiKeyInput(
-                label: 'Brave API Key',
-                controller: _braveApiController,
-                icon: Iconsax.search_normal,
-                onChanged: () => setState(() => _hasUnsavedChanges = true),
-              ),
-            ApiKeyInput(
-              label: 'Groq API Key',
-              controller: _groqApiController,
-              icon: Iconsax.code,
-              onChanged: () => setState(() => _hasUnsavedChanges = true),
-            ),
-            SizedBox(height: 24),
-            Text(
-              'Search',
-              style: theme.textTheme.titleLarge,
-            ),
-            SizedBox(height: 16),
-            Container(
-              margin: EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListTile(
-                title: Text(
-                  'Use Google Search',
-                  style: theme.textTheme.titleMedium,
-                ),
-                subtitle: Text(
-                  'Use Google Search instead of Brave',
-                  style: theme.textTheme.bodyMedium,
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(Iconsax.info_circle),
-                      onPressed: () => _showGoogleSearchInfoDialog(),
-                    ),
-                    Switch(
-                      value: _useGoogleSearch,
-                      onChanged: _toggleGoogleSearch,
-                    ),
-                  ],
-                ),
-                onTap: () => _toggleGoogleSearch(!_useGoogleSearch),
-              ),
-            ),
-            SizedBox(height: 24),
-            Text(
-              'Privacy',
-              style: theme.textTheme.titleLarge,
-            ),
-            SizedBox(height: 16),
-            Container(
-              margin: EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListTile(
-                title: Text(
-                  'Incognito Mode',
-                  style: theme.textTheme.titleMedium,
-                ),
-                subtitle: Text(
-                  'Disable search history',
-                  style: theme.textTheme.bodyMedium,
-                ),
-                trailing: Switch(
-                  value: _isIncognitoMode,
-                  onChanged: _toggleIncognitoMode,
-                ),
-              ),
-            ),
-            SizedBox(height: 24),
-            Text(
-              'Speech Recognition',
-              style: theme.textTheme.titleLarge,
-            ),
-            SizedBox(height: 16),
-            Container(
-              margin: EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListTile(
-                title: Text(
-                  'Use OpenAI Whisper Model',
-                  style: theme.textTheme.titleMedium,
-                ),
-                subtitle: Text(
-                  'For improved speech recognition',
-                  style: theme.textTheme.bodyMedium,
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(Iconsax.info_circle),
-                      onPressed: _showWhisperInfoDialog,
-                    ),
-                    Switch(
-                      value: _useWhisperModel,
-                      onChanged: _toggleWhisperModel,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 24),
-            Text(
-              'Theme',
-              style: theme.textTheme.titleLarge,
-            ),
-            SizedBox(height: 16),
-            Container(
-              margin: EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListTile(
-                title: Text(
-                  'Dark Mode',
-                  style: theme.textTheme.titleMedium,
-                ),
-                subtitle: Text(
-                  'Toggle dark/light theme',
-                  style: theme.textTheme.bodyMedium,
-                ),
-                trailing: Switch(
-                  value: themeProvider.isDarkMode,
-                  onChanged: (value) => themeProvider.toggleTheme(),
-                ),
-              ),
-            ),
-            Container(
-              margin: EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListTile(
-                title: Text(
-                  'Accent Color',
-                  style: theme.textTheme.titleMedium,
-                ),
-                subtitle: Text(
-                  'Choose app accent color',
-                  style: theme.textTheme.bodyMedium,
-                ),
-                trailing: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: themeProvider.seedColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                onTap: () => _showColorPicker(context),
-              ),
-            ),
-            SizedBox(height: 24),
-            Text(
-              'Query Disambiguation',
-              style: theme.textTheme.titleLarge,
-            ),
-            SizedBox(height: 8),
-            Container(
+      bottomNavigationBar: _hasUnsavedChanges
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
               ),
-              child: Column(
+              child: Row(
                 children: [
-                  SwitchListTile(
-                    title: Text(
-                      'Enable ambiguity detection',
-                      style: theme.textTheme.bodyLarge,
-                    ),
-                    subtitle: Text(
-                      'Detect and clarify ambiguous search queries',
-                      style: theme.textTheme.bodySmall!
-                          .copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6)),
-                    ),
-                    value: _enableAmbiguityDetection,
-                    onChanged: _toggleAmbiguityDetection,
-                    activeColor: theme.colorScheme.primary,
-                    secondary: Icon(
-                      Icons.help_outline,
-                      color: theme.colorScheme.primary,
+                  Expanded(
+                    child: Text(
+                      'You have unsaved changes',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                      ),
                     ),
                   ),
-                  Visibility(
-                    visible: _enableAmbiguityDetection,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Ambiguity threshold',
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                              GestureDetector(
-                                onTap: _showAmbiguityInfoDialog,
-                                child: Icon(
-                                  Icons.info_outline,
-                                  size: 18,
-                                  color: theme.colorScheme.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Text('Low', style: theme.textTheme.bodySmall),
-                              Expanded(
-                                child: Slider(
-                                  value: _ambiguityThreshold,
-                                  onChanged: _updateAmbiguityThreshold,
-                                  min: 0.1,
-                                  max: 0.9,
-                                  divisions: 8,
-                                  label: _ambiguityThreshold.toStringAsFixed(1),
-                                  activeColor: theme.colorScheme.primary,
-                                ),
-                              ),
-                              Text('High', style: theme.textTheme.bodySmall),
-                            ],
-                          ),
-                        ],
+                  ElevatedButton(
+                    onPressed: _validateApiKeys,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                    child: _isValidating
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  theme.colorScheme.onPrimary),
+                            ),
+                          )
+                        : Text('Save & Validate'),
+                  ),
+                ],
+              ),
+            )
+          : null,
+    );
+  }
+
+  Widget _buildSection(
+      BuildContext context, String title, Icon icon, List<Widget> children) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 16),
+          child: Row(
+            children: [
+              IconTheme(
+                data: IconThemeData(color: theme.colorScheme.primary),
+                child: icon,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.colorScheme.onBackground,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+        ...children,
+      ],
+    );
+  }
+
+  Widget _buildSettingItem(
+    BuildContext context,
+    String title,
+    String subtitle,
+    IconData iconData,
+    bool value,
+    Function(bool) onChanged, {
+    VoidCallback? onInfoPressed,
+  }) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.1),
+        ),
+      ),
+      child: SwitchListTile(
+        title: Text(
+          title,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(0.7),
+          ),
+        ),
+        value: value,
+        onChanged: onChanged,
+        secondary: onInfoPressed != null
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      iconData,
+                      color: theme.colorScheme.primary,
+                      size: 20,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Iconsax.info_circle,
+                      color: theme.colorScheme.onSurface.withOpacity(0.5),
+                    ),
+                    onPressed: onInfoPressed,
+                  ),
+                ],
+              )
+            : Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  iconData,
+                  color: theme.colorScheme.primary,
+                  size: 20,
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildInfoButton(
+    BuildContext context,
+    String title,
+    String subtitle,
+    IconData iconData,
+    VoidCallback onPressed,
+  ) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.1),
+        ),
+      ),
+      child: ListTile(
+        title: Text(
+          title,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(0.7),
+          ),
+        ),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            iconData,
+            color: theme.colorScheme.primary,
+            size: 20,
+          ),
+        ),
+        trailing: Icon(
+          Iconsax.arrow_right_3,
+          color: theme.colorScheme.onSurface.withOpacity(0.5),
+        ),
+        onTap: onPressed,
+      ),
+    );
+  }
+
+  Widget _buildThresholdSlider(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.1),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Iconsax.slider,
+                      color: theme.colorScheme.primary,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Ambiguity threshold',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                 ],
               ),
-            ),
-            SizedBox(height: 24),
-            FilledButton(
-              onPressed: (_isValidating || !_hasUnsavedChanges)
-                  ? null
-                  : _validateApiKeys,
-              style: FilledButton.styleFrom(
-                minimumSize: Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+              GestureDetector(
+                onTap: _showAmbiguityInfoDialog,
+                child: Icon(
+                  Iconsax.info_circle,
+                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                  size: 20,
                 ),
               ),
-              child: _isValidating
-                  ? SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : Text(_hasUnsavedChanges
-                      ? 'Validate and Save Settings'
-                      : 'No Changes to Save'),
-            ),
-            SizedBox(height: 24),
-            ListTile(
-              leading: Icon(Iconsax.information),
-              title: Text(
-                'Version',
-                style: theme.textTheme.titleMedium,
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Text(
+                'Low',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                ),
               ),
-              subtitle: Text(
-                AppConstants.appVersion,
-                style: theme.textTheme.bodyMedium,
+              Expanded(
+                child: Slider(
+                  value: _ambiguityThreshold,
+                  onChanged: _updateAmbiguityThreshold,
+                  min: 0.1,
+                  max: 0.9,
+                  divisions: 8,
+                  label: _ambiguityThreshold.toStringAsFixed(1),
+                  activeColor: theme.colorScheme.primary,
+                ),
               ),
-            ),
-            ListTile(
-              leading: Icon(Iconsax.document),
-              title: Text(
-                'License',
-                style: theme.textTheme.titleMedium,
+              Text(
+                'High',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                ),
               ),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LicenseScreen()),
-              ),
-            ),
-          ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildColorPickerItem(BuildContext context) {
+    final theme = Theme.of(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.1),
         ),
       ),
+      child: ListTile(
+        title: Text(
+          'Accent Color',
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        subtitle: Text(
+          'Choose app accent color',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(0.7),
+          ),
+        ),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            Iconsax.colorfilter,
+            color: theme.colorScheme.primary,
+            size: 20,
+          ),
+        ),
+        trailing: Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: themeProvider.seedColor,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: theme.colorScheme.onSurface.withOpacity(0.2),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: themeProvider.seedColor.withOpacity(0.3),
+                blurRadius: 4,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+        ),
+        onTap: () => _showColorPicker(context),
+      ),
+    );
+  }
+
+  void _showGoogleSearchInfoDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Google Search'),
+          content: Text(
+              'The image search functionality is currently being tested and will not be available for now. '
+              'Other search features will work as expected.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -577,28 +785,6 @@ class SettingsScreenState extends State<SettingsScreen> {
               }).toList(),
             ),
           ),
-        );
-      },
-    );
-  }
-
-  void _showGoogleSearchInfoDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Google Search'),
-          content: Text(
-              'The image search functionality is currently being tested and will not be available for now. '
-              'Other search features will work as expected.'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Close'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
         );
       },
     );

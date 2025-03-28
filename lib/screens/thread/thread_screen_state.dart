@@ -79,6 +79,26 @@ class ThreadScreenState extends State<ThreadScreen>
       _isIncognitoMode = prefs.getBool('incognitoMode') ?? false;
     });
     if (!_isIncognitoMode) {
+      _checkAndSaveToHistory();
+    }
+  }
+
+  Future<void> _checkAndSaveToHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedThreads = prefs.getStringList('saved_threads') ?? [];
+    
+    // Check if this query already exists in saved threads
+    bool isAlreadySaved = savedThreads.any((threadJson) {
+      try {
+        final thread = json.decode(threadJson);
+        return thread['query'] == widget.query;
+      } catch (e) {
+        return false;
+      }
+    });
+    
+    // Only save to history if it's not already a saved thread
+    if (!isAlreadySaved) {
       _saveToHistory();
     }
   }
