@@ -4,18 +4,20 @@ import 'package:iconsax/iconsax.dart';
 class FollowUpInput extends StatelessWidget {
   final TextEditingController controller;
   final Function(String) onSubmitted;
-  final bool isDarkMode;
+  final bool? isDarkMode;
 
   const FollowUpInput({
     super.key,
     required this.controller,
     required this.onSubmitted,
-    required this.isDarkMode,
+    this.isDarkMode,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // Use provided isDarkMode or infer from theme
+    
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(

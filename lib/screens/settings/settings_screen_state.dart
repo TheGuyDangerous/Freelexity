@@ -17,6 +17,8 @@ class SettingsScreenState extends State<SettingsScreen> {
   bool _isIncognitoMode = false;
   bool _useWhisperModel = false;
   bool _useGoogleSearch = false;
+  bool _enableAmbiguityDetection = true;
+  double _ambiguityThreshold = 0.6;
   bool _isBraveApiKeyValid = false;
   bool _isGroqApiKeyValid = false;
   bool _isValidating = false;
@@ -39,6 +41,8 @@ class SettingsScreenState extends State<SettingsScreen> {
       _isIncognitoMode = prefs.getBool('isIncognitoMode') ?? false;
       _useWhisperModel = prefs.getBool('useWhisperModel') ?? false;
       _useGoogleSearch = prefs.getBool('useGoogleSearch') ?? false;
+      _enableAmbiguityDetection = prefs.getBool('enableAmbiguityDetection') ?? true;
+      _ambiguityThreshold = prefs.getDouble('ambiguityThreshold') ?? 0.6;
     });
   }
 
@@ -49,6 +53,8 @@ class SettingsScreenState extends State<SettingsScreen> {
     await prefs.setBool('isIncognitoMode', _isIncognitoMode);
     await prefs.setBool('useWhisperModel', _useWhisperModel);
     await prefs.setBool('useGoogleSearch', _useGoogleSearch);
+    await prefs.setBool('enableAmbiguityDetection', _enableAmbiguityDetection);
+    await prefs.setDouble('ambiguityThreshold', _ambiguityThreshold);
   }
 
   void _showWhisperInfoDialog() {
@@ -154,15 +160,30 @@ class SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-  void _showGoogleSearchInfoDialog() {
+  void _toggleAmbiguityDetection(bool value) {
+    setState(() {
+      _enableAmbiguityDetection = value;
+      _hasUnsavedChanges = true;
+    });
+  }
+
+  void _updateAmbiguityThreshold(double value) {
+    setState(() {
+      _ambiguityThreshold = value;
+      _hasUnsavedChanges = true;
+    });
+  }
+
+  void _showAmbiguityInfoDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Google Search'),
+          title: Text('Query Ambiguity Detection'),
           content: Text(
-              'The image search functionality is currently being tested and will not be available for now. '
-              'Other search features will work as expected.'),
+              'This feature detects when your search query might have multiple meanings and helps you clarify what you\'re looking for.\n\n'
+              'The ambiguity threshold controls how sensitive the detection is. A higher value means more queries will be considered ambiguous.\n\n'
+              'Setting the threshold to 1.0 will detect most ambiguities but may prompt for clarification more often. Setting it to 0.0 will effectively disable the feature.'),
           actions: <Widget>[
             TextButton(
               child: Text('Close'),
@@ -240,7 +261,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     IconButton(
                       icon: Icon(Iconsax.info_circle),
-                      onPressed: _showGoogleSearchInfoDialog,
+                      onPressed: () => _showGoogleSearchInfoDialog(),
                     ),
                     Switch(
                       value: _useGoogleSearch,
@@ -368,6 +389,86 @@ class SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             SizedBox(height: 24),
+            Text(
+              'Query Disambiguation',
+              style: theme.textTheme.titleLarge,
+            ),
+            SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  SwitchListTile(
+                    title: Text(
+                      'Enable ambiguity detection',
+                      style: theme.textTheme.bodyLarge,
+                    ),
+                    subtitle: Text(
+                      'Detect and clarify ambiguous search queries',
+                      style: theme.textTheme.bodySmall!
+                          .copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6)),
+                    ),
+                    value: _enableAmbiguityDetection,
+                    onChanged: _toggleAmbiguityDetection,
+                    activeColor: theme.colorScheme.primary,
+                    secondary: Icon(
+                      Icons.help_outline,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  Visibility(
+                    visible: _enableAmbiguityDetection,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Ambiguity threshold',
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                              GestureDetector(
+                                onTap: _showAmbiguityInfoDialog,
+                                child: Icon(
+                                  Icons.info_outline,
+                                  size: 18,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Text('Low', style: theme.textTheme.bodySmall),
+                              Expanded(
+                                child: Slider(
+                                  value: _ambiguityThreshold,
+                                  onChanged: _updateAmbiguityThreshold,
+                                  min: 0.1,
+                                  max: 0.9,
+                                  divisions: 8,
+                                  label: _ambiguityThreshold.toStringAsFixed(1),
+                                  activeColor: theme.colorScheme.primary,
+                                ),
+                              ),
+                              Text('High', style: theme.textTheme.bodySmall),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 24),
             FilledButton(
               onPressed: (_isValidating || !_hasUnsavedChanges)
                   ? null
@@ -479,5 +580,34 @@ class SettingsScreenState extends State<SettingsScreen> {
         );
       },
     );
+  }
+
+  void _showGoogleSearchInfoDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Google Search'),
+          content: Text(
+              'The image search functionality is currently being tested and will not be available for now. '
+              'Other search features will work as expected.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _braveApiController.dispose();
+    _groqApiController.dispose();
+    super.dispose();
   }
 }

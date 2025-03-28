@@ -3,6 +3,12 @@ import 'dart:convert';
 import 'dart:io';
 import '../../widgets/thread/loading_shimmer.dart';
 import '../../services/search_service.dart';
+import '../../services/determiner_agent_service.dart';
+import '../../services/disambiguation_agent_service.dart';
+import '../../services/query_enhancement_service.dart';
+import '../../models/ambiguity_detection_model.dart';
+import '../../models/disambiguation_option_model.dart';
+import '../../widgets/search/ambiguity_resolution_widget.dart';
 import 'thread_screen.dart';
 
 class ThreadLoadingScreen extends StatefulWidget {
@@ -23,6 +29,15 @@ class ThreadLoadingScreen extends StatefulWidget {
 
 class _ThreadLoadingScreenState extends State<ThreadLoadingScreen> {
   final SearchService _searchService = SearchService();
+  final DeterminerAgentService _determinerAgentService = DeterminerAgentService();
+  final DisambiguationAgentService _disambiguationAgentService = DisambiguationAgentService();
+  final QueryEnhancementService _queryEnhancementService = QueryEnhancementService();
+  
+  bool _isLoading = true;
+  bool _isDisambiguating = false;
+  AmbiguityDetectionResult? _ambiguityResult;
+  List<DisambiguationOption> _disambiguationOptions = [];
+  List<Map<String, dynamic>> _preliminarySearchResults = [];
 
   @override
   void initState() {
@@ -38,7 +53,7 @@ class _ThreadLoadingScreenState extends State<ThreadLoadingScreen> {
     } else if (widget.savedThreadPath != null) {
       await _loadSavedThread(widget.savedThreadPath!);
     } else {
-      await _performSearch();
+      await _checkAmbiguity();
     }
   }
 
@@ -50,16 +65,84 @@ class _ThreadLoadingScreenState extends State<ThreadLoadingScreen> {
         final threadData = json.decode(jsonString);
         _navigateToThreadScreen(threadData);
       } else {
-        await _performSearch();
+        await _checkAmbiguity();
       }
     } catch (e) {
       debugPrint('Error loading saved thread: $e');
-      await _performSearch();
+      await _checkAmbiguity();
     }
   }
 
-  Future<void> _performSearch() async {
-    final results = await _searchService.performSearch(context, widget.query);
+  Future<void> _checkAmbiguity() async {
+    setState(() {
+      _isLoading = true;
+    });
+    
+    // Get preliminary search results to help with disambiguation
+    _preliminarySearchResults = await _searchService.getBasicSearchResults(widget.query);
+    
+    // Check if query is ambiguous
+    final ambiguityResult = await _determinerAgentService.detectAmbiguity(widget.query);
+    
+    if (!mounted) return;
+    
+    setState(() {
+      _ambiguityResult = ambiguityResult;
+    });
+    
+    if (ambiguityResult.isAmbiguous) {
+      await _handleAmbiguousQuery(ambiguityResult);
+    } else {
+      await _performSearch(widget.query);
+    }
+  }
+
+  Future<void> _handleAmbiguousQuery(AmbiguityDetectionResult ambiguityResult) async {
+    // Generate disambiguation options
+    final options = await _disambiguationAgentService.generateOptions(
+      ambiguityResult, 
+      _preliminarySearchResults
+    );
+    
+    if (!mounted) return;
+    
+    if (options.isEmpty) {
+      // If no options could be generated, proceed with original query
+      await _performSearch(widget.query);
+      return;
+    }
+    
+    setState(() {
+      _isDisambiguating = true;
+      _disambiguationOptions = options;
+      _isLoading = false;
+    });
+    
+    // Show disambiguation UI (handled in build method)
+  }
+
+  void _onDisambiguationOptionSelected(DisambiguationOption option) {
+    final enhancedQuery = _queryEnhancementService.enhanceQuery(widget.query, option);
+    
+    setState(() {
+      _isDisambiguating = false;
+      _isLoading = true;
+    });
+    
+    _performSearch(enhancedQuery);
+  }
+
+  void _continueWithOriginalQuery() {
+    setState(() {
+      _isDisambiguating = false;
+      _isLoading = true;
+    });
+    
+    _performSearch(widget.query);
+  }
+
+  Future<void> _performSearch(String query) async {
+    final results = await _searchService.performSearch(context, query);
     if (mounted) {
       if (results != null) {
         _navigateToThreadScreen(results);
@@ -77,6 +160,11 @@ class _ThreadLoadingScreenState extends State<ThreadLoadingScreen> {
           searchResults: List<Map<String, dynamic>>.from(data['searchResults']),
           summary: data['summary'],
           savedSections: data['sections'] as List<dynamic>?,
+          disambiguationInfo: _ambiguityResult?.isAmbiguous == true ? {
+            'wasDisambiguated': true,
+            'ambiguityType': _ambiguityResult!.ambiguityType,
+            'originalQuery': _ambiguityResult!.originalQuery,
+          } : null,
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
@@ -95,15 +183,28 @@ class _ThreadLoadingScreenState extends State<ThreadLoadingScreen> {
       appBar: AppBar(
         backgroundColor: theme.colorScheme.surface,
         title: Text(
-          widget.savedThreadPath != null || widget.savedThreadData != null
-              ? 'Loading Saved Thread'
-              : 'Searching...',
+          _isDisambiguating 
+              ? 'Clarify Your Search'
+              : (widget.savedThreadPath != null || widget.savedThreadData != null
+                  ? 'Loading Saved Thread'
+                  : 'Searching...'),
           style: theme.textTheme.titleLarge,
         ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: theme.colorScheme.onSurface),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
-      body: SingleChildScrollView(
-        child: LoadingShimmer(isDarkMode: theme.brightness == Brightness.dark),
-      ),
+      body: _isDisambiguating
+          ? AmbiguityResolutionWidget(
+              ambiguityResult: _ambiguityResult!,
+              options: _disambiguationOptions,
+              onOptionSelected: _onDisambiguationOptionSelected,
+              onContinueWithOriginal: _continueWithOriginalQuery,
+            )
+          : SingleChildScrollView(
+              child: LoadingShimmer(isDarkMode: theme.brightness == Brightness.dark),
+            ),
     );
   }
 }

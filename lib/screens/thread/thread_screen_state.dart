@@ -9,10 +9,9 @@ import '../../widgets/thread/sources_section.dart';
 import '../../widgets/thread/image_section.dart';
 import '../../widgets/thread/related_questions.dart';
 import '../../widgets/thread/follow_up_input.dart';
+import '../../widgets/thread/disambiguation_info_widget.dart';
 import '../../services/search_service.dart';
 import 'thread_screen.dart';
-import 'package:provider/provider.dart';
-import '../../theme/theme_provider.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
@@ -366,95 +365,118 @@ class ThreadScreenState extends State<ThreadScreen>
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    final theme = Theme.of(context);
 
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(
-              0, MediaQuery.of(context).size.height * (1 - _animation.value)),
-          child: Scaffold(
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            appBar: AppBar(
-              leading: IconButton(
-                icon: Icon(Iconsax.close_square),
-                onPressed: () {
-                  _animationController.reverse().then((_) {
-                    Navigator.of(context).pop();
-                  });
-                },
-              ),
-              title: Text('Thread',
-                  style: TextStyle(
-                      fontFamily: 'Raleway', fontWeight: FontWeight.bold)),
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-              foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
-              elevation: 0,
-              actions: [
-                IconButton(
-                  icon: Icon(Iconsax.document_download),
-                  onPressed: _downloadThread,
-                ),
-              ],
-            ),
-            body: Stack(
-              children: [
-                ScrollConfiguration(
-                  behavior: BouncyScrollBehavior(),
-                  child: ListView.builder(
-                    physics: BouncingScrollPhysics(),
-                    itemCount: _threadSections.length,
-                    itemBuilder: (context, index) {
-                      return Column(
-                        children: [
-                          ThreadSectionWidget(
-                            section: _threadSections[index],
-                            onFollowUpSelected: _addFollowUpSection,
-                            onSpeakPressed: _toggleSpeech,
-                            isSpeaking: _isSpeaking,
-                          ),
-                          if (index < _threadSections.length - 1)
-                            Divider(
-                              color: Theme.of(context).dividerColor,
-                              thickness: 1,
-                              height: 32,
-                            ),
-                          if (index == _threadSections.length - 1)
-                            SizedBox(height: 80),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: FollowUpInput(
-                    controller: _followUpController,
-                    onSubmitted: (String question) {
-                      if (question.isNotEmpty) {
-                        _addFollowUpSection(question);
-                        _followUpController.clear();
-                      }
-                    },
-                    isDarkMode: themeProvider.isDarkMode,
-                  ),
-                ),
-                if (_isLoading)
-                  Container(
-                    color: Colors.black.withOpacity(0.5),
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        );
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          _stopSpeaking();
+        }
       },
+      child: Scaffold(
+        backgroundColor: theme.colorScheme.surface,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // App bar
+              _buildAppBar(theme),
+              
+              // Main content
+              Expanded(
+                child: FadeTransition(
+                  opacity: _animation,
+                  child: ListView(
+                    padding: EdgeInsets.only(top: 8),
+                    children: [
+                      // Display disambiguation info if available
+                      if (widget.disambiguationInfo != null)
+                        DisambiguationInfoWidget(
+                          disambiguationInfo: widget.disambiguationInfo!,
+                        ),
+                      
+                      // Rest of the content
+                      for (int i = 0; i < _threadSections.length; i++) ...[
+                        _buildSectionContent(i, theme),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Bottom input
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: _isLoading
+                    ? Center(child: CircularProgressIndicator())
+                    : FollowUpInput(
+                        controller: _followUpController,
+                        onSubmitted: _handleFollowUpQuestion,
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
+  }
+
+  Widget _buildAppBar(ThemeData theme) {
+    return AppBar(
+      leading: IconButton(
+        icon: Icon(Iconsax.close_square),
+        onPressed: () {
+          _animationController.reverse().then((_) {
+            Navigator.of(context).pop();
+          });
+        },
+      ),
+      title: Text('Thread',
+          style: TextStyle(
+              fontFamily: 'Raleway', fontWeight: FontWeight.bold)),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      foregroundColor: theme.textTheme.bodyLarge?.color,
+      elevation: 0,
+      actions: [
+        IconButton(
+          icon: Icon(Iconsax.document_download),
+          onPressed: _downloadThread,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionContent(int index, ThemeData theme) {
+    return Column(
+      children: [
+        ThreadSectionWidget(
+          section: _threadSections[index],
+          onFollowUpSelected: _addFollowUpSection,
+          onSpeakPressed: _toggleSpeech,
+          isSpeaking: _isSpeaking,
+        ),
+        if (index < _threadSections.length - 1)
+          Divider(
+            color: theme.dividerColor,
+            thickness: 1,
+            height: 32,
+          ),
+        if (index == _threadSections.length - 1)
+          SizedBox(height: 80),
+      ],
+    );
+  }
+
+  void _stopSpeaking() {
+    _flutterTts.stop();
+    setState(() => _isSpeaking = false);
+  }
+
+  void _handleFollowUpQuestion(String question) {
+    if (question.isNotEmpty) {
+      _addFollowUpSection(question);
+      _followUpController.clear();
+    }
   }
 }
 

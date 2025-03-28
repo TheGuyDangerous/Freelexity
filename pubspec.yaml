@@ -17,7 +17,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter_slidable: ^3.1.1
   http: ^1.2.2
-  shared_preferences: ^2.0.12
+  shared_preferences: ^2.3.4
   provider: ^6.0.3
   lottie: ^2.3.2
   iconsax: ^0.0.8
@@ -37,6 +37,8 @@ dependencies:
   yaml: ^3.1.0
   package_info_plus: ^4.0.0
   liquid_swipe: ^3.1.0
+  uuid: ^4.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
