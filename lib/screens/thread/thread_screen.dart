@@ -6,6 +6,7 @@ class ThreadScreen extends StatefulWidget {
   final List<Map<String, dynamic>> searchResults;
   final String summary;
   final List<dynamic>? savedSections;
+  final Map<String, dynamic>? disambiguationInfo;
 
   const ThreadScreen({
     super.key,
@@ -13,6 +14,7 @@ class ThreadScreen extends StatefulWidget {
     required this.searchResults,
     required this.summary,
     this.savedSections,
+    this.disambiguationInfo,
   });
 
   @override

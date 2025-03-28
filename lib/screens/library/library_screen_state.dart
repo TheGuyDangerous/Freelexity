@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:iconsax/iconsax.dart';
 import 'dart:convert';
 import 'dart:io';
 import '../../widgets/library/history_list.dart';
@@ -14,7 +15,10 @@ const int maxHistoryItems = 50;
 
 class LibraryScreenState extends State<LibraryScreen> {
   List<Map<String, dynamic>> _searchHistory = [];
+  List<Map<String, dynamic>> _filteredHistory = [];
   bool _isIncognitoMode = false;
+  bool _showSearch = false;
+  final TextEditingController _searchController = TextEditingController();
   final RefreshController _refreshController =
       RefreshController(initialRefresh: false);
 
@@ -22,6 +26,13 @@ class LibraryScreenState extends State<LibraryScreen> {
   void initState() {
     super.initState();
     _loadSearchHistory();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _refreshController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadSearchHistory() async {
@@ -74,24 +85,52 @@ class LibraryScreenState extends State<LibraryScreen> {
         // Sort the combined list by timestamp
         _searchHistory.sort((a, b) => DateTime.parse(b['timestamp'])
             .compareTo(DateTime.parse(a['timestamp'])));
+        
+        _filteredHistory = List.from(_searchHistory);
       });
     } else {
       setState(() {
         _searchHistory = [];
+        _filteredHistory = [];
       });
     }
   }
 
-  Future<void> _onDeleteItem(int index) async {
+  void _filterSearchResults(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        _filteredHistory = List.from(_searchHistory);
+      });
+      return;
+    }
+
     setState(() {
-      _searchHistory.removeAt(index);
+      _filteredHistory = _searchHistory
+          .where((item) => 
+              item['query'].toString().toLowerCase().contains(query.toLowerCase()))
+          .toList();
     });
-    await _saveSearchHistory();
+  }
+
+  Future<void> _onDeleteItem(int index) async {
+    final item = _filteredHistory[index];
+    final originalIndex = _searchHistory.indexWhere((original) => 
+        original['query'] == item['query'] && 
+        original['timestamp'] == item['timestamp']);
+    
+    if (originalIndex != -1) {
+      setState(() {
+        _searchHistory.removeAt(originalIndex);
+        _filteredHistory.removeAt(index);
+      });
+      await _saveSearchHistory();
+    }
   }
 
   Future<void> _onClearAll() async {
     setState(() {
       _searchHistory.clear();
+      _filteredHistory.clear();
     });
     await _saveSearchHistory();
   }
@@ -117,32 +156,138 @@ class LibraryScreenState extends State<LibraryScreen> {
     _refreshController.refreshCompleted();
   }
 
+  void _showFilterOptions() {
+    // Placeholder for filter functionality
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Filter options coming soon')),
+    );
+  }
+
+  void _showExportImportOptions() {
+    // Placeholder for export/import functionality
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Export/Import options coming soon')),
+    );
+  }
+
+  void _showStats() {
+    // Placeholder for stats functionality
+    final totalSaved = _searchHistory.where((item) => item['isSaved'] == true).length;
+    final totalHistory = _searchHistory.length - totalSaved;
+    
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Library Statistics', 
+                style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 20),
+            _buildStatRow('Total Items', '${_searchHistory.length}'),
+            _buildStatRow('Saved Threads', '$totalSaved'),
+            _buildStatRow('History Items', '$totalHistory'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: theme.colorScheme.surface,
-        title: Text(
-          'Library',
-          style: theme.textTheme.headlineMedium,
-        ),
-      ),
-      body: SmartRefresher(
-        controller: _refreshController,
-        onRefresh: _onRefresh,
-        child: _isIncognitoMode
-            ? IncognitoMessage()
-            : _searchHistory.isEmpty
-                ? EmptyState()
-                : HistoryList(
-                    searchHistory: _searchHistory,
-                    onDeleteItem: _onDeleteItem,
-                    onClearAll: _onClearAll,
-                    onItemTap: _handleItemTap,
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  if (!_showSearch) ...[
+                    Text(
+                      'Library',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Iconsax.chart),
+                      onPressed: _showStats,
+                    ),
+                    IconButton(
+                      icon: const Icon(Iconsax.search_normal),
+                      onPressed: () => setState(() => _showSearch = true),
+                    ),
+                    IconButton(
+                      icon: const Icon(Iconsax.export_1),
+                      onPressed: _showExportImportOptions,
+                    ),
+                  ] else ...[
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        autofocus: true,
+                        decoration: InputDecoration(
+                          hintText: 'Search saved arguments...',
+                          border: InputBorder.none,
+                          prefixIcon: const Icon(Iconsax.search_normal),
+                          suffixIcon: IconButton(
+                            icon: const Icon(Iconsax.close_circle),
+                            onPressed: () {
+                              _searchController.clear();
+                              _filterSearchResults('');
+                              setState(() => _showSearch = false);
+                            },
+                          ),
+                        ),
+                        onChanged: _filterSearchResults,
+                      ),
+                    ),
+                  ],
+                  IconButton(
+                    icon: const Icon(Iconsax.filter),
+                    onPressed: _showFilterOptions,
                   ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: SmartRefresher(
+                controller: _refreshController,
+                onRefresh: _onRefresh,
+                child: _isIncognitoMode
+                    ? const IncognitoMessage()
+                    : _filteredHistory.isEmpty
+                        ? const EmptyState()
+                        : HistoryList(
+                            searchHistory: _filteredHistory,
+                            onDeleteItem: _onDeleteItem,
+                            onClearAll: _onClearAll,
+                            onItemTap: _handleItemTap,
+                          ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -193,10 +338,5 @@ class LibraryScreenState extends State<LibraryScreen> {
       ),
     );
   }
-
-  @override
-  void dispose() {
-    _refreshController.dispose();
-    super.dispose();
-  }
 }
+

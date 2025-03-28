@@ -15,6 +15,50 @@ class SearchService {
   int _retryCount = 0;
   static const int _maxRetries = 3;
 
+  // New method to get basic search results without full processing
+  // Used for disambiguation purposes
+  Future<List<Map<String, dynamic>>> getBasicSearchResults(String query) async {
+    if (query.trim().isEmpty) {
+      return [];
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final useGoogleSearch = prefs.getBool('useGoogleSearch') ?? false;
+    final braveApiKey = prefs.getString('braveApiKey') ?? '';
+
+    if (!useGoogleSearch && braveApiKey.isEmpty) {
+      return [];
+    }
+
+    try {
+      if (useGoogleSearch) {
+        try {
+          return await _googleSearchService.search(query);
+        } catch (e) {
+          debugPrint('Error getting basic search results: $e');
+          return [];
+        }
+      } else {
+        final url = Uri.parse(
+            'https://api.search.brave.com/res/v1/web/search?q=$query');
+        final response = await http.get(
+          url,
+          headers: {'X-Subscription-Token': braveApiKey},
+        );
+
+        if (response.statusCode != 200) {
+          return [];
+        }
+
+        final data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data['web']['results']);
+      }
+    } catch (e) {
+      debugPrint('Error getting basic search results: $e');
+      return [];
+    }
+  }
+
   Future<Map<String, dynamic>?> performSearch(
       BuildContext context, String query) async {
     if (query.trim().isEmpty) {
