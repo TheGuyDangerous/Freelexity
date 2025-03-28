@@ -4,11 +4,13 @@ import 'package:iconsax/iconsax.dart';
 class FollowUpInput extends StatelessWidget {
   final TextEditingController controller;
   final Function(String) onSubmitted;
+  final bool isDarkMode;
 
   const FollowUpInput({
     super.key,
     required this.controller,
     required this.onSubmitted,
+    required this.isDarkMode,
   });
 
   @override

@@ -23,7 +23,7 @@ class GroqApiService {
           'Authorization': 'Bearer $groqApiKey',
         },
         body: jsonEncode({
-          'model': 'mixtral-8x7b-32768',
+          'model': 'llama-3.3-70b-versatile',
           'messages': [
             {
               'role': 'system',
@@ -64,7 +64,7 @@ class GroqApiService {
           'Authorization': 'Bearer $apiKey',
         },
         body: jsonEncode({
-          'model': 'mixtral-8x7b-32768',
+          'model': 'llama-3.3-70b-versatile',
           'messages': [
             {'role': 'user', 'content': 'Hello'}
           ],

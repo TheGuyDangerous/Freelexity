@@ -122,7 +122,7 @@ class ThreadScreenState extends State<ThreadScreen>
           'Authorization': 'Bearer $groqApiKey',
         },
         body: jsonEncode({
-          'model': 'mixtral-8x7b-32768',
+          'model': 'llama-3.3-70b-versatile',
           'messages': [
             {
               'role': 'system',
@@ -420,9 +420,8 @@ class ThreadScreenState extends State<ThreadScreen>
                               thickness: 1,
                               height: 32,
                             ),
-                          // Add bottom padding to the last item
                           if (index == _threadSections.length - 1)
-                            SizedBox(height: 80), // Adjust this value as needed
+                            SizedBox(height: 80),
                         ],
                       );
                     },
@@ -440,6 +439,7 @@ class ThreadScreenState extends State<ThreadScreen>
                         _followUpController.clear();
                       }
                     },
+                    isDarkMode: themeProvider.isDarkMode,
                   ),
                 ),
                 if (_isLoading)
