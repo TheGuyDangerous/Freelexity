@@ -21,6 +21,7 @@ class ThemeProvider with ChangeNotifier {
           appBarTheme: const AppBarTheme(
             backgroundColor: Colors.black,
             elevation: 0,
+            scrolledUnderElevation: 0,
           ),
           cardTheme: CardTheme(
             color: Colors.grey[900],
@@ -37,6 +38,10 @@ class ThemeProvider with ChangeNotifier {
           colorScheme: ColorScheme.fromSeed(
             seedColor: _seedColor,
             brightness: _isDarkMode ? Brightness.dark : Brightness.light,
+          ),
+          appBarTheme: const AppBarTheme(
+            elevation: 0,
+            scrolledUnderElevation: 0,
           ),
         );
 

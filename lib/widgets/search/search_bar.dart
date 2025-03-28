@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
-class CustomSearchBar extends StatelessWidget {
+class CustomSearchBar extends StatefulWidget {
   final TextEditingController controller;
   final bool isListening;
   final bool useWhisperModel;
@@ -18,6 +18,37 @@ class CustomSearchBar extends StatelessWidget {
   });
 
   @override
+  State<CustomSearchBar> createState() => _CustomSearchBarState();
+}
+
+class _CustomSearchBarState extends State<CustomSearchBar> {
+  bool _hasText = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Check initial text state
+    _hasText = widget.controller.text.isNotEmpty;
+    // Add listener to track text changes
+    widget.controller.addListener(_updateTextState);
+  }
+
+  void _updateTextState() {
+    final hasText = widget.controller.text.isNotEmpty;
+    if (_hasText != hasText) {
+      setState(() {
+        _hasText = hasText;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_updateTextState);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
@@ -32,7 +63,7 @@ class CustomSearchBar extends StatelessWidget {
         children: [
           Expanded(
             child: TextField(
-              controller: controller,
+              controller: widget.controller,
               style: TextStyle(color: theme.colorScheme.onSurface),
               decoration: InputDecoration(
                 hintText: 'Ask anything...',
@@ -45,20 +76,30 @@ class CustomSearchBar extends StatelessWidget {
               textInputAction: TextInputAction.newline,
               minLines: 1,
               maxLines: 4,
-              onSubmitted: onSubmitted,
+              onSubmitted: widget.onSubmitted,
             ),
           ),
-          IconButton(
-            icon: Icon(
-              isListening
-                  ? Iconsax.stop_circle
-                  : (useWhisperModel
-                      ? Iconsax.microphone_2
-                      : Iconsax.microphone),
-              color: theme.colorScheme.onSurface,
+          // Show send button if there's text, otherwise show mic button
+          if (_hasText)
+            IconButton(
+              icon: Icon(
+                Iconsax.send_1,
+                color: theme.colorScheme.primary,
+              ),
+              onPressed: () => widget.onSubmitted(widget.controller.text),
+            )
+          else
+            IconButton(
+              icon: Icon(
+                widget.isListening
+                    ? Iconsax.stop_circle
+                    : (widget.useWhisperModel
+                        ? Iconsax.microphone_2
+                        : Iconsax.microphone),
+                color: theme.colorScheme.onSurface,
+              ),
+              onPressed: widget.onListenPressed,
             ),
-            onPressed: onListenPressed,
-          ),
         ],
       ),
     );
