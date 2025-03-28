@@ -45,7 +45,7 @@ class RelatedQuestions extends StatelessWidget {
               title: Text(
                 questions[index],
                 style: theme.textTheme.bodyMedium,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
               trailing: Icon(
@@ -53,7 +53,7 @@ class RelatedQuestions extends StatelessWidget {
                 color: theme.colorScheme.onSurface.withOpacity(0.7),
                 size: 18,
               ),
-              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               dense: true,
               onTap: () => onQuestionSelected(questions[index]),
             );
