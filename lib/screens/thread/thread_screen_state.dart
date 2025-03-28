@@ -146,15 +146,15 @@ class ThreadScreenState extends State<ThreadScreen>
             {
               'role': 'system',
               'content':
-                  'Generate 4 brief, related questions based on the given query and summary. Each question should be no longer than 10 words.'
+                  'Generate 4 thoughtful and engaging follow-up questions based on the given query and summary.ONLY PROVIDE THE QUESTIONS, NO OTHER TEXT. Each question should:\n\n1. Be specific and detailed enough to provide clear context (10-15 words)\n2. Explore a different aspect of the topic to encourage deeper exploration\n3. Use natural, conversational language as if continuing a discussion\n4. Be phrased to elicit informative responses rather than just yes/no answers\n\nMake sure the questions feel like natural extensions of the original topic and would be interesting for the user to explore further.'
             },
             {
               'role': 'user',
               'content':
-                  'Query: ${query ?? widget.query}\n\nSummary: ${summary ?? widget.summary}\n\nGenerate 4 short, related questions:'
+                  'Query: ${query ?? widget.query}\n\nSummary: ${summary ?? widget.summary}\n\nGenerate 4 thoughtful, diverse follow-up questions that would naturally continue this conversation:'
             },
           ],
-          'max_tokens': 150,
+          'max_tokens': 350,
           'temperature': 0.7,
         }),
       );
@@ -180,6 +180,15 @@ class ThreadScreenState extends State<ThreadScreen>
   Future<void> _fetchImages([String? query]) async {
     final prefs = await SharedPreferences.getInstance();
     final braveApiKey = prefs.getString('braveApiKey') ?? '';
+    final enableImageSearch = prefs.getBool('enableImageSearch') ?? true;
+
+    // Skip image search if it's disabled in settings
+    if (!enableImageSearch) {
+      setState(() {
+        _threadSections.last.images = [];
+      });
+      return;
+    }
 
     if (braveApiKey.isEmpty) {
       debugPrint('Brave API key is not set');
@@ -345,7 +354,15 @@ class ThreadScreenState extends State<ThreadScreen>
           _isLoading = false;
         });
         await _fetchRelatedQuestions(query, result['summary']);
-        await _fetchImages(query);
+        
+        // Get image search setting
+        final prefs = await SharedPreferences.getInstance();
+        final enableImageSearch = prefs.getBool('enableImageSearch') ?? true;
+        
+        // Only fetch images if image search is enabled
+        if (enableImageSearch) {
+          await _fetchImages(query);
+        }
       } else {
         setState(() {
           _isLoading = false;

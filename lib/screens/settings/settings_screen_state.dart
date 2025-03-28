@@ -18,6 +18,7 @@ class SettingsScreenState extends State<SettingsScreen> {
   bool _useWhisperModel = false;
   bool _useGoogleSearch = false;
   bool _enableAmbiguityDetection = true;
+  bool _enableImageSearch = true;
   double _ambiguityThreshold = 0.6;
   bool _isBraveApiKeyValid = false;
   bool _isGroqApiKeyValid = false;
@@ -42,6 +43,7 @@ class SettingsScreenState extends State<SettingsScreen> {
       _useWhisperModel = prefs.getBool('useWhisperModel') ?? false;
       _useGoogleSearch = prefs.getBool('useGoogleSearch') ?? false;
       _enableAmbiguityDetection = prefs.getBool('enableAmbiguityDetection') ?? true;
+      _enableImageSearch = prefs.getBool('enableImageSearch') ?? true;
       _ambiguityThreshold = prefs.getDouble('ambiguityThreshold') ?? 0.6;
     });
   }
@@ -54,6 +56,7 @@ class SettingsScreenState extends State<SettingsScreen> {
     await prefs.setBool('useWhisperModel', _useWhisperModel);
     await prefs.setBool('useGoogleSearch', _useGoogleSearch);
     await prefs.setBool('enableAmbiguityDetection', _enableAmbiguityDetection);
+    await prefs.setBool('enableImageSearch', _enableImageSearch);
     await prefs.setDouble('ambiguityThreshold', _ambiguityThreshold);
   }
 
@@ -66,6 +69,28 @@ class SettingsScreenState extends State<SettingsScreen> {
           content: Text(
               'The OpenAI Whisper model is a more advanced speech recognition system that can provide better accuracy, especially for non-English languages and accented speech. However, it requires an internet connection and may be slower than the device\'s built-in speech recognition.\n\n'
               'When enabled, the app will use the Whisper model through the Groq API for speech-to-text conversion instead of the device\'s built-in system.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showImageSearchInfoDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Image Search'),
+          content: Text(
+              'When enabled, relevant images will be displayed in search results using the Brave Search API.\n\n'
+              'Disabling this feature will prevent images from being fetched and displayed, which can reduce data usage and improve load times.'),
           actions: <Widget>[
             TextButton(
               child: Text('Close'),
@@ -167,6 +192,13 @@ class SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
+  void _toggleImageSearch(bool value) {
+    setState(() {
+      _enableImageSearch = value;
+      _hasUnsavedChanges = true;
+    });
+  }
+
   void _updateAmbiguityThreshold(double value) {
     setState(() {
       _ambiguityThreshold = value;
@@ -260,6 +292,18 @@ class SettingsScreenState extends State<SettingsScreen> {
                     _toggleGoogleSearch,
                     onInfoPressed: () => _showGoogleSearchInfoDialog(),
                   ),
+                  if (!_useGoogleSearch) ...[
+                    const SizedBox(height: 16),
+                    _buildSettingItem(
+                      context,
+                      'Enable Image Search',
+                      'Show images in search results (Brave Search)',
+                      Iconsax.image,
+                      _enableImageSearch,
+                      _toggleImageSearch,
+                      onInfoPressed: _showImageSearchInfoDialog,
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 32),
