@@ -38,7 +38,7 @@ class SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _braveApiController.text = prefs.getString('braveApiKey') ?? '';
       _groqApiController.text = prefs.getString('groqApiKey') ?? '';
-      _isIncognitoMode = prefs.getBool('isIncognitoMode') ?? false;
+      _isIncognitoMode = prefs.getBool('incognitoMode') ?? false;
       _useWhisperModel = prefs.getBool('useWhisperModel') ?? false;
       _useGoogleSearch = prefs.getBool('useGoogleSearch') ?? false;
       _enableAmbiguityDetection = prefs.getBool('enableAmbiguityDetection') ?? true;
@@ -50,7 +50,7 @@ class SettingsScreenState extends State<SettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('braveApiKey', _braveApiController.text);
     await prefs.setString('groqApiKey', _groqApiController.text);
-    await prefs.setBool('isIncognitoMode', _isIncognitoMode);
+    await prefs.setBool('incognitoMode', _isIncognitoMode);
     await prefs.setBool('useWhisperModel', _useWhisperModel);
     await prefs.setBool('useGoogleSearch', _useGoogleSearch);
     await prefs.setBool('enableAmbiguityDetection', _enableAmbiguityDetection);

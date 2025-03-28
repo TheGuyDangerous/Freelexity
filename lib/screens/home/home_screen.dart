@@ -19,6 +19,14 @@ class HomeScreenState extends State<HomeScreen> {
     const SettingsScreen(),
   ];
 
+  void setCurrentIndex(int index) {
+    if (index >= 0 && index < _screens.length) {
+      setState(() {
+        _currentIndex = index;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -28,6 +28,7 @@ class CustomSearchBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: TextField(
@@ -37,7 +38,13 @@ class CustomSearchBar extends StatelessWidget {
                 hintText: 'Ask anything...',
                 hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                 border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(vertical: 8),
+                isDense: true,
               ),
+              keyboardType: TextInputType.multiline,
+              textInputAction: TextInputAction.newline,
+              minLines: 1,
+              maxLines: 4,
               onSubmitted: onSubmitted,
             ),
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import '../../screens/home/home_screen.dart';
 
 class EmptyState extends StatelessWidget {
   const EmptyState({super.key});
@@ -45,7 +46,11 @@ class EmptyState extends StatelessWidget {
             const SizedBox(height: 32),
             FilledButton.tonal(
               onPressed: () {
-                Navigator.of(context).pop(); // Return to home screen
+                // Navigate to the Search tab (index 0) in the HomeScreen
+                final homeState = context.findAncestorStateOfType<HomeScreenState>();
+                if (homeState != null) {
+                  homeState.setCurrentIndex(0);
+                }
               },
               style: FilledButton.styleFrom(
                 shape: RoundedRectangleBorder(

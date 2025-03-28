@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import '../../screens/home/home_screen.dart';
 
 class IncognitoMessage extends StatelessWidget {
   const IncognitoMessage({super.key});
@@ -53,7 +54,11 @@ class IncognitoMessage extends StatelessWidget {
             const SizedBox(height: 32),
             FilledButton.tonal(
               onPressed: () {
-                Navigator.of(context).pushNamed('/settings');
+                // Navigate to the Settings tab (index 2) in the HomeScreen
+                final homeState = context.findAncestorStateOfType<HomeScreenState>();
+                if (homeState != null) {
+                  homeState.setCurrentIndex(2);
+                }
               },
               style: FilledButton.styleFrom(
                 shape: RoundedRectangleBorder(
